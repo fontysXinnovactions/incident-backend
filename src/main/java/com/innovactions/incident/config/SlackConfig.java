@@ -57,12 +57,5 @@ public class SlackConfig {
     ) {
         return new SlackBroadcaster(botTokenA, broadcastChannel);
     }
-//    @Bean
-//    public IncidentBroadcasterPort slackBroadcaster(
-//            @Value("${slack.botTokenA}") String botTokenB,
-//            @Value("${slack.broadcastChannel}") String broadcastChannel
-//    ) {
-//        return new SlackBroadcaster(botTokenB, broadcastChannel);
-//    }
 
 }
