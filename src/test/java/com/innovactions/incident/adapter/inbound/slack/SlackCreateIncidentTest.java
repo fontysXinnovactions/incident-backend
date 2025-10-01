@@ -37,7 +37,7 @@ class SlackCreateIncidentTest {
     private IncidentInboundPort incidentInboundPort;
 
     @Mock
-    private AppMentionEvent appMentionEvent;
+    private AppMentionEvent event;
 
     @Mock
     private EventContext eventContext;
@@ -65,7 +65,7 @@ class SlackCreateIncidentTest {
     }
 
     /**
-     * Unit test for the {@link SlackCreateIncident#handle}.
+     * Unit test for the {@link SlackCreateIncident#handleIncomingIncident}.
      *
      * This test verifies whether the handle function correctly creates
      * an incident Command when it is triggered with valid values.
@@ -74,15 +74,15 @@ class SlackCreateIncidentTest {
      * @throws IOException when requesting usersInfo
      */
     @Test
-    void shouldCreateIncidentWithUserRealName() throws SlackApiException, IOException {
+    void shouldCreateIncidentWithUserReporterName() throws SlackApiException, IOException {
         // Arrange
-        String userId = "U123456789";
+        String reporterId = "U123456789";
         String rawText = "<@U987654321> There's a critical outage in production";
         String expectedCleanText = "There's a critical outage in production";
-        String realName = "John Doe";
+        String reporterName = "John Doe";
 
-        when(appMentionEvent.getUser()).thenReturn(userId);
-        when(appMentionEvent.getText()).thenReturn(rawText);
+        when(event.getUser()).thenReturn(reporterId);
+        when(event.getText()).thenReturn(rawText);
 
         try (MockedStatic<Slack> mockedSlack = mockStatic(Slack.class)) {
             mockedSlack.when(Slack::getInstance).thenReturn(slackInstance);
@@ -91,10 +91,10 @@ class SlackCreateIncidentTest {
             when(usersInfoResponse.isOk()).thenReturn(true);
             when(usersInfoResponse.getUser()).thenReturn(user);
             when(user.getProfile()).thenReturn(userProfile);
-            when(userProfile.getRealName()).thenReturn(realName);
+            when(userProfile.getRealName()).thenReturn(reporterName);
 
             // Act
-            slackCreateIncident.handle(appMentionEvent, eventContext);
+            slackCreateIncident.handleIncomingIncident(event, eventContext);
         }
 
         // Assert
@@ -102,8 +102,8 @@ class SlackCreateIncidentTest {
         verify(incidentInboundPort).handle(commandCaptor.capture());
 
         CreateIncidentCommand capturedCommand = commandCaptor.getValue();
-        assertThat(capturedCommand.reporterId()).isEqualTo(userId);
-        assertThat(capturedCommand.reporterName()).isEqualTo(realName);
+        assertThat(capturedCommand.reporterId()).isEqualTo(reporterId);
+        assertThat(capturedCommand.reporterName()).isEqualTo(reporterName);
         assertThat(capturedCommand.message()).isEqualTo(expectedCleanText);
         assertThat(capturedCommand.reportedAt()).isNotNull();
     }
@@ -115,8 +115,8 @@ class SlackCreateIncidentTest {
         String rawText = "<@U987654321> Database connection lost";
         String expectedCleanText = "Database connection lost";
 
-        when(appMentionEvent.getUser()).thenReturn(userId);
-        when(appMentionEvent.getText()).thenReturn(rawText);
+        when(event.getUser()).thenReturn(userId);
+        when(event.getText()).thenReturn(rawText);
 
         // Mock Slack API to throw exception
         try (MockedStatic<Slack> mockedSlack = mockStatic(Slack.class)) {
@@ -125,7 +125,7 @@ class SlackCreateIncidentTest {
             when(methodsClient.usersInfo((UsersInfoRequest) any())).thenThrow(new IOException("API Error"));
 
             // When
-            slackCreateIncident.handle(appMentionEvent, eventContext);
+            slackCreateIncident.handleIncomingIncident(event, eventContext);
         }
 
         // Then
@@ -144,8 +144,8 @@ class SlackCreateIncidentTest {
         String userId = "U123456789";
         String rawText = "Server is down";
 
-        when(appMentionEvent.getUser()).thenReturn(userId);
-        when(appMentionEvent.getText()).thenReturn(rawText);
+        when(event.getUser()).thenReturn(userId);
+        when(event.getText()).thenReturn(rawText);
 
         try (MockedStatic<Slack> mockedSlack = mockStatic(Slack.class)) {
             mockedSlack.when(Slack::getInstance).thenReturn(slackInstance);
@@ -154,7 +154,7 @@ class SlackCreateIncidentTest {
             when(usersInfoResponse.isOk()).thenReturn(false);
 
             // When
-            slackCreateIncident.handle(appMentionEvent, eventContext);
+            slackCreateIncident.handleIncomingIncident(event, eventContext);
         }
 
         // Then
@@ -172,8 +172,8 @@ class SlackCreateIncidentTest {
         String rawText = "<@U987654321> <@U111111111|someone> Critical issue here";
         String expectedCleanText = "Critical issue here";
 
-        when(appMentionEvent.getUser()).thenReturn(userId);
-        when(appMentionEvent.getText()).thenReturn(rawText);
+        when(event.getUser()).thenReturn(userId);
+        when(event.getText()).thenReturn(rawText);
 
         try (MockedStatic<Slack> mockedSlack = mockStatic(Slack.class)) {
             mockedSlack.when(Slack::getInstance).thenReturn(slackInstance);
@@ -182,7 +182,7 @@ class SlackCreateIncidentTest {
             when(usersInfoResponse.isOk()).thenReturn(false);
 
             // When
-            slackCreateIncident.handle(appMentionEvent, eventContext);
+            slackCreateIncident.handleIncomingIncident(event, eventContext);
         }
 
         // Then
@@ -194,14 +194,14 @@ class SlackCreateIncidentTest {
     }
 
     @Test
-    void shouldHandleEmptyTextAfterCleaning() throws SlackApiException, IOException {
+    void shouldHandleIncomingIncidentEmptyTextAfterCleaning() throws SlackApiException, IOException {
         // Given
         String userId = "U123456789";
         String rawText = "<@U987654321>";
         String expectedCleanText = "";
 
-        when(appMentionEvent.getUser()).thenReturn(userId);
-        when(appMentionEvent.getText()).thenReturn(rawText);
+        when(event.getUser()).thenReturn(userId);
+        when(event.getText()).thenReturn(rawText);
 
         try (MockedStatic<Slack> mockedSlack = mockStatic(Slack.class)) {
             mockedSlack.when(Slack::getInstance).thenReturn(slackInstance);
@@ -210,7 +210,7 @@ class SlackCreateIncidentTest {
             when(usersInfoResponse.isOk()).thenReturn(false);
 
             // When
-            slackCreateIncident.handle(appMentionEvent, eventContext);
+            slackCreateIncident.handleIncomingIncident(event, eventContext);
         }
 
         // Then
@@ -227,8 +227,8 @@ class SlackCreateIncidentTest {
         String userId = "U123456789";
         String rawText = "Test incident";
 
-        when(appMentionEvent.getUser()).thenReturn(userId);
-        when(appMentionEvent.getText()).thenReturn(rawText);
+        when(event.getUser()).thenReturn(userId);
+        when(event.getText()).thenReturn(rawText);
 
         try (MockedStatic<Slack> mockedSlack = mockStatic(Slack.class)) {
             mockedSlack.when(Slack::getInstance).thenReturn(slackInstance);
@@ -239,7 +239,7 @@ class SlackCreateIncidentTest {
             when(user.getProfile()).thenReturn(null); // Profile is null
 
             // When
-            slackCreateIncident.handle(appMentionEvent, eventContext);
+            slackCreateIncident.handleIncomingIncident(event, eventContext);
         }
 
         // Then

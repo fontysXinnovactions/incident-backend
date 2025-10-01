@@ -47,7 +47,7 @@ public class SlackConfig {
             // process async
             CompletableFuture.runAsync(() -> {
                 try {
-                    slackInboundAdapter.handle(payload.getEvent(), context);
+                    slackInboundAdapter.handleIncomingIncident(payload.getEvent(), context);
                     context.say("Incident noted! Thanks, we’ll look into it.");
                 } catch (Exception e) {
                     // pass

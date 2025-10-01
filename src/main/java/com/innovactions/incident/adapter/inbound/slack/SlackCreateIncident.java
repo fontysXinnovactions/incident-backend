@@ -8,10 +8,12 @@ import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.users.UsersInfoRequest;
 import com.slack.api.methods.response.users.UsersInfoResponse;
 import com.slack.api.model.event.AppMentionEvent;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.time.Instant;
 
+@Slf4j
 public class SlackCreateIncident {
 
     private final IncidentInboundPort incidentInboundPort;
@@ -20,14 +22,15 @@ public class SlackCreateIncident {
         this.incidentInboundPort = incidentInboundPort;
     }
 
-    public void handle(AppMentionEvent event, EventContext context) throws SlackApiException, IOException {
-        String userId = event.getUser();
+    public void handleIncomingIncident(AppMentionEvent event, EventContext context) throws SlackApiException, IOException {
+
+        String reporterId = event.getUser();
         String rawText = event.getText();
 
         // Slack message by default are prepended with a <@----> user id, we remove this for a clean message.
         String cleanText = rawText.replaceAll("<@[A-Z0-9]+(?:\\|[^>]+)?>", "").trim();
 
-        String reporterName = userId;
+        String reporterName = "Unknown";
 
         // Request the username from Slack
         try {
@@ -38,18 +41,18 @@ public class SlackCreateIncident {
                     .usersInfo(
                             UsersInfoRequest
                                     .builder()
-                                    .user(userId)
+                                    .user(reporterId)
                                     .build()
                     );
             if (info.isOk() && info.getUser() != null && info.getUser().getProfile() != null) {
                 reporterName = info.getUser().getProfile().getRealName();
             }
         } catch (IOException | com.slack.api.methods.SlackApiException e) {
-            System.err.println("Slack API error resolving user info: " + e.getMessage());
+            log.error("Slack API error resolving user info: {}", e.getMessage());
         }
 
         CreateIncidentCommand command = new CreateIncidentCommand(
-                userId,
+                reporterId,
                 reporterName,
                 cleanText,
                 Instant.now()
