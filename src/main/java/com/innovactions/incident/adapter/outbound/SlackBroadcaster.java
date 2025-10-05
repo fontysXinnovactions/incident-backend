@@ -1,7 +1,6 @@
 package com.innovactions.incident.adapter.outbound;
 
 import com.innovactions.incident.domain.model.Incident;
-import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.slack.api.Slack;
@@ -13,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -24,7 +24,9 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     private final ChannelNameGenerator channelNameGenerator;
 
     @Override
-    public void broadcast(Incident incident) {
+    public String broadcast(Incident incident) {
+        //NOTE: Create new incident with uniq channel name in slack
+        //NOTE: Return the channel id as a String
         try {
             // generate channel name based on severity and timestamp
             String channelName = channelNameGenerator.generateChannelName(incident.getSeverity());
@@ -38,7 +40,7 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
             
             if (!createResponse.isOk()) {
                 log.error("Failed to create channel for incident [{}]: {}", incident.getId(), createResponse.getError());
-                return;
+                return null;
             }
             
             String channelId = createResponse.getChannel().getId();
@@ -75,9 +77,28 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
             );
             
             log.info("Incident broadcasted to new channel {}: {}", channelName, incident.getId());
+            return channelId;
             
         } catch (IOException | SlackApiException e) {
             log.error("Failed to broadcast incident [{}] to Slack: {}", incident.getId(), e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public void updateBroadcast(Incident incident, String channelId) {
+        //If the channel exist and active update by sending the new message input
+        if (channelId == null) {
+            log.warn("No channelId available for update of incident {}", incident.getId());
+            return;
+        }
+        try {
+            Slack.getInstance().methods(botToken).chatPostMessage(req -> req
+                    .channel(channelId)
+                    .text("🔄 Incident update at " + Instant.now() + ":\n" + incident.summary()));
+            log.info("Updated incident {} posted to channel {}", incident.getId(), channelId);
+        } catch (Exception e) {
+            log.error("Failed to post update for incident {}", incident.getId(), e);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.innovactions.incident.port.inbound;
 
-import java.util.Map;
+import com.innovactions.incident.application.InboundMessage;
 
 public interface WhatsAppMessageReceiverPort {
-    void handle(Map<String, Object> payload);
+    void handle(InboundMessage message);
 }

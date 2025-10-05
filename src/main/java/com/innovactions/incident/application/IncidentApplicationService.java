@@ -2,6 +2,7 @@ package com.innovactions.incident.application;
 
 import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
+import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.service.IncidentService;
@@ -22,17 +23,23 @@ public class IncidentApplicationService implements IncidentInboundPort {
     private final IncidentClosurePort incidentClosurePort;
 
     @Override
-    public void handle(CreateIncidentCommand command) {
+    public String handle(CreateIncidentCommand command) {
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
 
-        broadcaster.broadcast(incident);
+        return broadcaster.broadcast(incident);
 
     }
 
     @Override
     public void closeIncident(CloseIncidentCommand incidentCommand) {
         incidentClosurePort.closeIncident(incidentCommand.developerUserId(), incidentCommand.channelId(), incidentCommand.reason());
+    }
+
+    @Override
+    public void handle(UpdateIncidentCommand command) {
+        Incident updated = incidentService.updateIncident(command);
+        broadcaster.updateBroadcast(updated, command.channelId());
     }
 }

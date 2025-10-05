@@ -1,5 +1,8 @@
 package com.innovactions.incident.controller;
 
+import com.innovactions.incident.adapter.inbound.whatsapp.WhatsAppPayload;
+import com.innovactions.incident.adapter.inbound.whatsapp.WhatsAppPayloadMapper;
+import com.innovactions.incident.application.InboundMessage;
 import com.innovactions.incident.port.inbound.WhatsAppMessageReceiverPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,8 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -18,7 +19,11 @@ public class WhatsAppWebhookController {
     private final WhatsAppMessageReceiverPort messageReceiverPort;
     @Value("${whatsapp.verifyToken}")
     private String verifyToken;
-    // GET endpoint for webhook verification
+
+    //TODO: more error handling
+    //TODO: Give more explanation
+    //TODO: make params required and add validation of some sort
+
     @GetMapping
     public ResponseEntity<String> verifyWebhook(
             @RequestParam(value = "hub.mode", required = false) String mode,
@@ -26,21 +31,31 @@ public class WhatsAppWebhookController {
             @RequestParam(value = "hub.challenge", required = false) String challenge) {
 
         if ("subscribe".equals(mode) && verifyToken.equals(token)) {
-            System.out.println("WEBHOOK VERIFIED");
+            log.info("Webhook verified successfully");
+            log.info(challenge);
             return ResponseEntity.ok(challenge);  // Respond with challenge
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Verification failed");
         }
     }
     @PostMapping
-    public ResponseEntity<Void> receiveWebhook(@RequestBody(required = false) Map<String, Object> body) {
-        if (body == null || body.isEmpty()) {
+    public ResponseEntity<Void> receiveWebhook(@RequestBody WhatsAppPayload payload) {
+        if (payload == null || payload.getEntry() == null || payload.getEntry().isEmpty()) {
             log.warn("Received empty WhatsApp webhook payload");
             return ResponseEntity.badRequest().build();
         }
 
-        log.debug("Incoming WhatsApp webhook payload: {}", body);
-        messageReceiverPort.handle(body);
-        return ResponseEntity.ok().build();
+        try {
+            log.debug("Incoming WhatsApp webhook received with {} entries", payload.getEntry().size());
+
+//            messageReceiverPort.handle(payload);
+            InboundMessage message = WhatsAppPayloadMapper.toInboundMessage(payload);
+            messageReceiverPort.handle(message);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Failed to process WhatsApp webhook payload", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
+
 }
