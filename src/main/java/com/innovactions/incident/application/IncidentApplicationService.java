@@ -14,16 +14,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class IncidentApplicationService implements IncidentInboundPort {
 
-  private final IncidentService incidentService;
-  private final IncidentBroadcasterPort broadcaster;
-  private final SeverityClassifierPort severityClassifier;
+    private final IncidentService incidentService;
+    private final IncidentBroadcasterPort broadcaster;
+    private final SeverityClassifierPort severityClassifier;
 
-  @Override
-  public void handle(CreateIncidentCommand command) {
-    Severity severity = severityClassifier.classify(command.message());
+    @Override
+    public void handle(CreateIncidentCommand command) {
+        Severity severity = severityClassifier.classify(command.message());
 
-    Incident incident = incidentService.createIncident(command, severity);
+        Incident incident = incidentService.createIncident(command, severity);
 
-    broadcaster.broadcast(incident);
-  }
+        broadcaster.broadcast(incident);
+
+    }
 }
