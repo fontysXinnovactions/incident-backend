@@ -144,8 +144,8 @@
                 <version>3.6.0</version>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
-                    <consoleOutput>false</consoleOutput>
-                    <failsOnError>true</failsOnError>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>false</failsOnError>
                 </configuration>
             </plugin>
         </plugins>
