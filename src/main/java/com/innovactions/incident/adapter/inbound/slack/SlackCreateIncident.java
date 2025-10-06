@@ -30,7 +30,7 @@ public class SlackCreateIncident {
         // Slack message by default are prepended with a <@----> user id, we remove this for a clean message.
         String cleanText = rawText.replaceAll("<@[A-Z0-9]+(?:\\|[^>]+)?>", "").trim();
 
-        String reporterName = "Unknown";
+        String reporterName = reporterId;
 
         // Request the username from Slack
         try {

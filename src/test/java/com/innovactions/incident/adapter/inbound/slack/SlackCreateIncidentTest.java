@@ -75,7 +75,7 @@ class SlackCreateIncidentTest {
      */
     @Test
     void shouldCreateIncidentWithUserReporterName() throws SlackApiException, IOException {
-        // Arrange
+        // Given
         String reporterId = "U123456789";
         String rawText = "<@U987654321> There's a critical outage in production";
         String expectedCleanText = "There's a critical outage in production";
@@ -93,11 +93,11 @@ class SlackCreateIncidentTest {
             when(user.getProfile()).thenReturn(userProfile);
             when(userProfile.getRealName()).thenReturn(reporterName);
 
-            // Act
+            // When
             slackCreateIncident.handleIncomingIncident(event, eventContext);
         }
 
-        // Assert
+        // Then
         ArgumentCaptor<CreateIncidentCommand> commandCaptor = ArgumentCaptor.forClass(CreateIncidentCommand.class);
         verify(incidentInboundPort).handle(commandCaptor.capture());
 
@@ -108,14 +108,24 @@ class SlackCreateIncidentTest {
         assertThat(capturedCommand.reportedAt()).isNotNull();
     }
 
+    /**
+     * Unit test for the {@link SlackCreateIncident#handleIncomingIncident}.
+     *
+     * This test verifies whether the handle function correctly falls
+     * back onto the userId when the request for the username fails
+     * because of Slack being unreachable.
+     *
+     * @throws SlackApiException when requesting usersInfo
+     * @throws IOException when requesting usersInfo
+     */
     @Test
     void shouldFallbackToUserIdWhenSlackApiCallFails() throws SlackApiException, IOException {
         // Given
-        String userId = "U123456789";
+        String reporterId = "U123456789";
         String rawText = "<@U987654321> Database connection lost";
         String expectedCleanText = "Database connection lost";
 
-        when(event.getUser()).thenReturn(userId);
+        when(event.getUser()).thenReturn(reporterId);
         when(event.getText()).thenReturn(rawText);
 
         // Mock Slack API to throw exception
@@ -133,11 +143,21 @@ class SlackCreateIncidentTest {
         verify(incidentInboundPort).handle(commandCaptor.capture());
 
         CreateIncidentCommand capturedCommand = commandCaptor.getValue();
-        assertThat(capturedCommand.reporterId()).isEqualTo(userId);
-        assertThat(capturedCommand.reporterName()).isEqualTo(userId); // Fallback to userId
+        assertThat(capturedCommand.reporterId()).isEqualTo(reporterId);
+        assertThat(capturedCommand.reporterName()).isEqualTo(reporterId); // Fallback to reporterId
         assertThat(capturedCommand.message()).isEqualTo(expectedCleanText);
     }
 
+    /**
+     * Unit test for the {@link SlackCreateIncident#handleIncomingIncident}.
+     *
+     * This test verifies whether the handle function correctly falls
+     * back onto the userId when the request for the username fails
+     * because of Slack not returning an OK.
+     *
+     * @throws SlackApiException when requesting usersInfo
+     * @throws IOException when requesting usersInfo
+     */
     @Test
     void shouldFallbackToUserIdWhenUserInfoIsNotOk() throws SlackApiException, IOException {
         // Given
@@ -165,6 +185,15 @@ class SlackCreateIncidentTest {
         assertThat(capturedCommand.reporterName()).isEqualTo(userId);
     }
 
+    /**
+     * Unit test for the {@link SlackCreateIncident#handleIncomingIncident}.
+     *
+     * This test verifies whether the handle function correctly cleans
+     * up a message with multiple <@user data> tags.
+     *
+     * @throws SlackApiException when requesting usersInfo
+     * @throws IOException when requesting usersInfo
+     */
     @Test
     void shouldCleanMultipleMentionsFromText() throws SlackApiException, IOException {
         // Given
@@ -193,6 +222,16 @@ class SlackCreateIncidentTest {
         assertThat(capturedCommand.message()).isEqualTo(expectedCleanText);
     }
 
+    /**
+     * Unit test for the {@link SlackCreateIncident#handleIncomingIncident}.
+     *
+     * This test verifies whether the handle function correctly
+     * handles an empty message.
+     * TODO: Add validation so empty messages are not possible then change this test.
+     *
+     * @throws SlackApiException when requesting usersInfo
+     * @throws IOException when requesting usersInfo
+     */
     @Test
     void shouldHandleIncomingIncidentEmptyTextAfterCleaning() throws SlackApiException, IOException {
         // Given
@@ -221,6 +260,15 @@ class SlackCreateIncidentTest {
         assertThat(capturedCommand.message()).isEqualTo(expectedCleanText);
     }
 
+    /**
+     * Unit test for the {@link SlackCreateIncident#handleIncomingIncident}.
+     *
+     * This test verifies whether the handle function correctly falls
+     * back to userid when the profile returns null.
+     *
+     * @throws SlackApiException when requesting usersInfo
+     * @throws IOException when requesting usersInfo
+     */
     @Test
     void shouldFallbackToUserIdWhenUserProfileIsNull() throws SlackApiException, IOException {
         // Given
