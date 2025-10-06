@@ -46,7 +46,8 @@ public class ConversationContextService {
                 message.from(),
                 message.senderName(),
                 message.text(),
-                message.timestamp()
+                message.timestamp(),
+                message.channel()//TODO: investigate what returns and handle it accordingly
         );
         // handle returns only the channelId
         String channelId = incidentInboundPort.handle(cmd);

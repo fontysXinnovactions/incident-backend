@@ -2,8 +2,9 @@ package com.innovactions.incident.config;
 
 import com.innovactions.incident.adapter.inbound.slack.SlackCloseIncident;
 import com.innovactions.incident.adapter.inbound.slack.SlackCreateIncident;
-import com.innovactions.incident.adapter.outbound.SlackBroadcaster;
-import com.innovactions.incident.adapter.outbound.SlackIncidentClosureBroadcaster;
+import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
+import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
+import com.innovactions.incident.adapter.outbound.WhatsApp.WhatsAppOutboundAdapter;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -103,9 +105,8 @@ public class SlackConfig {
     @Bean
     public IncidentClosurePort incidentClosureBroadcaster(
             @Value("${slack.botTokenB}") String botTokenB,
-            @Value("${slack.botTokenA}") String botTokenA
-    ) {
-        return new SlackIncidentClosureBroadcaster(botTokenB, botTokenA);
+            @Value("${slack.botTokenA}") String botTokenA, @Lazy WhatsAppOutboundAdapter whatsAppOutboundAdapter
+    ) {//FIXME: Remove whatsApp adapter its only for testing purposes
+        return new SlackIncidentClosureBroadcaster(botTokenB, botTokenA, whatsAppOutboundAdapter);
     }
-
 }

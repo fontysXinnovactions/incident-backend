@@ -28,7 +28,8 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
         Incident incident = incidentService.createIncident(command, severity);
 
-        return broadcaster.broadcast(incident);
+        return broadcaster.broadcast(incident, command.platform());//TODO: look for better ways to do it
+//        return broadcaster.broadcast(incident);//TODO: look for better ways to do it
 
     }
 

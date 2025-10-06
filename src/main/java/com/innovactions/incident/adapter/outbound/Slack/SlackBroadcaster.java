@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.outbound;
+package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
@@ -24,7 +24,7 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     private final ChannelNameGenerator channelNameGenerator;
 
     @Override
-    public String broadcast(Incident incident) {
+    public String broadcast(Incident incident, String platform) {
         //NOTE: Create new incident with uniq channel name in slack
         //NOTE: Return the channel id as a String
         try {
@@ -50,12 +50,14 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
             ConversationsSetTopicResponse topicResponse = Slack.getInstance().methods(botToken)
                     .conversationsSetTopic(req -> req
                             .channel(channelId)
-                            .topic("reporterid:" + incident.getReporterId() + "_slack")
+//                            .topic("reporterid:" + incident.getReporterId() + "_slack")
+                                    .topic("reporterid:" + incident.getReporterId() + "_" +platform)
                     );
             
             if (!topicResponse.isOk()) {
                 log.warn("Failed to set topic for channel {}: {}", channelName, topicResponse.getError());
             }
+            //TODO: add _whatsapp if its from whatsapp
             
             // invite developer to the channel
             ConversationsInviteResponse inviteResponse = Slack.getInstance().methods(botToken)
@@ -95,7 +97,8 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
         try {
             Slack.getInstance().methods(botToken).chatPostMessage(req -> req
                     .channel(channelId)
-                    .text("🔄 Incident update at " + Instant.now() + ":\n" + incident.summary()));
+//                    .text("🔄 Incident update at " + Instant.now() + ":\n" + incident.summary()));
+                    .text("🔄 Incident update at " + Instant.now() + incident.getDetails()));
             log.info("Updated incident {} posted to channel {}", incident.getId(), channelId);
         } catch (Exception e) {
             log.error("Failed to post update for incident {}", incident.getId(), e);

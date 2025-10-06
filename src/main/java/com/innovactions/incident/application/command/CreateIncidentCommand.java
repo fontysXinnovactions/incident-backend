@@ -6,5 +6,6 @@ public record CreateIncidentCommand(
         String reporterId,
         String reporterName,
         String message,
-        Instant reportedAt
+        Instant reportedAt,
+        String platform  // <-- "slack" or "whatsapp"
 ) {}

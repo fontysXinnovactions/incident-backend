@@ -40,7 +40,8 @@ public class SlackCreateIncident {
                 userId,
                 reporterName,
                 cleanText,
-                Instant.now()
+                Instant.now(),
+                ""//FIXME: check the limitation
         );
 
         incidentInboundPort.handle(command);

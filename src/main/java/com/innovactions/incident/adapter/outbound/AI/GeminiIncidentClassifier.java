@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.outbound;
+package com.innovactions.incident.adapter.outbound.AI;
 
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;

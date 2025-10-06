@@ -1,7 +1,5 @@
-package com.innovactions.incident.controller;
+package com.innovactions.incident.adapter.inbound.whatsapp;
 
-import com.innovactions.incident.adapter.inbound.whatsapp.WhatsAppPayload;
-import com.innovactions.incident.adapter.inbound.whatsapp.WhatsAppPayloadMapper;
 import com.innovactions.incident.application.InboundMessage;
 import com.innovactions.incident.port.inbound.WhatsAppMessageReceiverPort;
 import lombok.RequiredArgsConstructor;
