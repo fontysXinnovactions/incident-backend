@@ -8,7 +8,7 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
-import com.innovactions.incident.port.outbound.SeverityClassifierPort;
+import com.innovactions.incident.port.outbound.IncidentSeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +18,12 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     private final IncidentService incidentService;
     private final IncidentBroadcasterPort broadcaster;
-    private final SeverityClassifierPort severityClassifier;
+    private final IncidentSeverityClassifierPort severityClassifier;
     private final IncidentClosurePort incidentClosurePort;
 
     @Override
     public void handle(CreateIncidentCommand command) {
-        Severity severity = severityClassifier.classify(command.message());
+        Severity severity = severityClassifier.classifyIncident(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
 
