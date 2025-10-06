@@ -29,6 +29,7 @@
     <properties>
         <java.version>21</java.version>
         <slack.sdk.version>1.45.4</slack.sdk.version>
+        <sonar.organization>fontysxinnovactions</sonar.organization>
     </properties>
     <dependencies>
         <dependency>
