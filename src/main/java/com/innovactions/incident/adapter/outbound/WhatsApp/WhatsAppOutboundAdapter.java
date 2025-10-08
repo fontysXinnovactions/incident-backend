@@ -1,5 +1,6 @@
 package com.innovactions.incident.adapter.outbound.WhatsApp;
 
+import com.innovactions.incident.port.outbound.WhatsAppOutboundPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class WhatsAppOutboundAdapter {
+public class WhatsAppOutboundAdapter implements WhatsAppOutboundPort {
     @Value("${whatsapp.apiUrl}")
     private String apiUrl; // e.g. https://graph.facebook.com/v20.0
 

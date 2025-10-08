@@ -30,15 +30,21 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
 
     @Override
-    public String handle(CreateIncidentCommand command) {
+    public String handleNewIncident(CreateIncidentCommand command) {
+
+        if (command.platform() == Platform.WHATSAPP) {
+            // check context if true or false
+        }
         //NOTE: Classify the severity of the incident report
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
 
-        //broadcast the incident to intended platform
-        return broadcaster.broadcast(incident, command.platform());
 
+        //broadcast the incident to intended platform
+        String channelId = broadcaster.broadcast(incident, command.platform());
+
+        // ifcontext returned true then update context
 
     }
 
@@ -56,8 +62,19 @@ public class IncidentApplicationService implements IncidentInboundPort {
     }
 
 
+    /**
+     * Use-case: Interpret messages from a conversation
+     * and determine if a message is an incident or not.
+     *<p>
+     * Example:
+     *  Message=<b>"Good morning" </b>=> not an incident
+     *<p>
+     *  Message="Hey Bob I can't login to my front end" => an incident
+     *
+     * @param command Incoming incident
+     */
     @Override
-    public void handle(UpdateIncidentCommand command) {
+    public void handlePossibleIncident(UpdateIncidentCommand command) {
         Incident updated = incidentService.updateIncident(command);
         broadcaster.updateBroadcast(updated, command.channelId());
     }

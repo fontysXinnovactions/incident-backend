@@ -1,7 +1,8 @@
 package com.innovactions.incident.adapter.inbound.whatsapp;
 
-import com.innovactions.incident.application.InboundMessage;
-import com.innovactions.incident.port.inbound.WhatsAppMessageReceiverPort;
+import com.innovactions.incident.adapter.inbound.whatsapp.mapper.WhatsAppPayloadToCreateIncidentCommandMapper;
+import com.innovactions.incident.application.command.CreateIncidentCommand;
+import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/webhook")
 @RequiredArgsConstructor
 public class WhatsAppWebhookController {
-    private final WhatsAppMessageReceiverPort messageReceiverPort;
+    private final IncidentInboundPort incidentInboundPort;
     @Value("${whatsapp.verifyToken}")
     private String verifyToken;
 
@@ -22,6 +23,13 @@ public class WhatsAppWebhookController {
     //TODO: Give more explanation
     //TODO: make params required and add validation of some sort
 
+    /**
+     * Use case: webhook verification
+     * checks Meta developer dashboard for the webhook URL and verify token
+     * establishes connection with WhatsApp Cloud API
+     * Once the webhook verification succeeds returns challenge
+     * URL will be reachable
+     */
     @GetMapping
     public ResponseEntity<String> verifyWebhook(
             @RequestParam(value = "hub.mode", required = false) String mode,
@@ -36,6 +44,7 @@ public class WhatsAppWebhookController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Verification failed");
         }
     }
+
     @PostMapping
     public ResponseEntity<Void> receiveWebhook(@RequestBody WhatsAppPayload payload) {
         if (payload == null || payload.getEntry() == null || payload.getEntry().isEmpty()) {
@@ -46,9 +55,8 @@ public class WhatsAppWebhookController {
         try {
             log.debug("Incoming WhatsApp webhook received with {} entries", payload.getEntry().size());
 
-//            messageReceiverPort.handle(payload);
-            InboundMessage message = WhatsAppPayloadMapper.toInboundMessage(payload);
-            messageReceiverPort.handle(message);
+            CreateIncidentCommand message = WhatsAppPayloadToCreateIncidentCommandMapper.toCreateIncidentCommand(payload);
+            incidentInboundPort.handlePossibleIncident(message);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Failed to process WhatsApp webhook payload", e);

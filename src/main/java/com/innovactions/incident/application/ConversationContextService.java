@@ -15,43 +15,33 @@ public class ConversationContextService {
     private final IncidentInboundPort incidentInboundPort;
     private final ConversationRepositoryPort conversationRepository;
 
-    public void processIncoming(InboundMessage message){
-        var context = conversationRepository.findActiveByUser(message.from());
+    public CreateIncidentCommand processIncoming(CreateIncidentCommand command){
+        var context = conversationRepository.findActiveByUser(command.reporterId());
         if (context.isPresent()) {
             var ctx = context.get();
-            boolean expired = message.timestamp()
+            boolean expired = command.timestamp()
                     .isAfter(context.get().lastMessageAt().plus(Duration.ofHours(24)));
 
             if (!expired) {
                 // Update existing incident
                 UpdateIncidentCommand cmd = new UpdateIncidentCommand(
                         context.get().channelId(),
-                        message.text(),
-                        message.timestamp()
+                        command.text(),
+                        command.timestamp()
                 );
-                incidentInboundPort.handle(cmd);
 
                 conversationRepository.update(
                         ctx.userId(),
                         ctx.incidentId(),
                         ctx.channelId(),
-                        message.timestamp()
+                        command.timestamp()
                 );
                 return;
             }
         }
 
-        // Create new incident (either no context or expired)
-        CreateIncidentCommand cmd = new CreateIncidentCommand(
-                message.from(),
-                message.senderName(),
-                message.text(),
-                message.timestamp(),
-                message.channel()//TODO: investigate what returns and handle it accordingly
-        );
-        // handle returns only the channelId
-        String channelId = incidentInboundPort.handle(cmd);
-        conversationRepository.saveNew(message.from(),"INCIDENT-" + System.currentTimeMillis(), channelId, message.timestamp());
+        conversationRepository.saveNew(command.reporterId(),"INCIDENT-" + command.timestamp(), channelId, command.timestamp());
+        return command;
     }
 }
 

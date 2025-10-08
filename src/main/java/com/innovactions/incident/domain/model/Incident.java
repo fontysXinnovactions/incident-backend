@@ -27,7 +27,6 @@ public class Incident {
     @NonNull
     private Severity severity;
 
-    @NonNull
     private String assignee;
 
     private final Instant reportedAt = Instant.now();
