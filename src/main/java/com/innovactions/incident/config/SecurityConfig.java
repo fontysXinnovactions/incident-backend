@@ -14,7 +14,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // CSRF off
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/slack/events", "/slack/events/close_incident", "/webhook").permitAll()
+                        .requestMatchers(
+                            "/slack/events", 
+                            "/slack/reporter", 
+                            "/slack/manager", 
+                            "/slack/manager/close_incident"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> {
@@ -22,4 +27,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-

@@ -1,30 +1,30 @@
 package com.innovactions.incident.adapter.outbound.AI;
 
+import com.google.genai.Client;
+import com.google.genai.types.GenerateContentResponse;
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import com.google.genai.Client;
-import com.google.genai.types.GenerateContentResponse;
-
-import java.util.Objects;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class GeminiIncidentClassifier implements SeverityClassifierPort {
 
-    private final Client client;
+  private final Client client;
 
-    public GeminiIncidentClassifier() {
-        // Reads GEMINI_API_KEY from environment variable
-        this.client = new Client();
-    }
+  public GeminiIncidentClassifier() {
+    // Reads GEMINI_API_KEY from environment variable
+    this.client = new Client();
+  }
 
-    @Override
-    public Severity classify(String message) {
-        String prompt = """
+  @Override
+  public Severity classify(String message) {
+    String prompt =
+        """
                  You are an incident triage assistant.
                  Classify ONLY the severity for the user's report.
                 \s
@@ -39,21 +39,19 @@ public class GeminiIncidentClassifier implements SeverityClassifierPort {
                  ---
                  %s
                  ---
-                """.formatted(message == null ? "" : message);
+                """
+            .formatted(message == null ? "" : message);
 
-        GenerateContentResponse response = client.models.generateContent(
-                "gemini-2.5-flash",
-                prompt,
-                null
-        );
+    GenerateContentResponse response =
+        client.models.generateContent("gemini-2.5-flash", prompt, null);
 
-        log.info("Gemini AI classified incident message '{}' as '{}'", message, response);
+    log.info("Gemini AI classified incident message '{}' as '{}'", message, response);
 
-        try {
-            return Severity.valueOf(Objects.requireNonNull(response.text()).trim().toUpperCase());
-        } catch (NullPointerException e) {
-            log.warn("Could not map response '{}', falling back to MINOR", response);
-            return Severity.MINOR;
-        }
+    try {
+      return Severity.valueOf(Objects.requireNonNull(response.text()).trim().toUpperCase());
+    } catch (NullPointerException e) {
+      log.warn("Could not map response '{}', falling back to MINOR", response);
+      return Severity.MINOR;
     }
+  }
 }
