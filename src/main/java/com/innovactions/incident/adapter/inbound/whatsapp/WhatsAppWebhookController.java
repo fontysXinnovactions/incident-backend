@@ -55,7 +55,7 @@ public class WhatsAppWebhookController {
         try {
             log.debug("Incoming WhatsApp webhook received with {} entries", payload.getEntry().size());
 
-            CreateIncidentCommand message = WhatsAppPayloadToCreateIncidentCommandMapper.toCreateIncidentCommand(payload);
+            CreateIncidentCommand message = WhatsAppPayloadToCreateIncidentCommandMapper.map(payload);
             incidentInboundPort.handlePossibleIncident(message);
             return ResponseEntity.ok().build();
         } catch (Exception e) {

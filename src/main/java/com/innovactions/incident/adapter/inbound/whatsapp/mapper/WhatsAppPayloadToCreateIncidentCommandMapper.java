@@ -8,30 +8,33 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 @NoArgsConstructor
-public class WhatsAppPayloadToCreateIncidentCommandMapper {
+public final class WhatsAppPayloadToCreateIncidentCommandMapper {
 
-    public static CreateIncidentCommand toCreateIncidentCommand(WhatsAppPayload payload) {
-        var entry = payload.getEntry().get(0);
-        var change = entry.getChanges().get(0);
+    /**
+     * Maps {@link WhatsAppPayload} to {@link CreateIncidentCommand}.
+     *
+     * @param payload the incoming WhatsApp payload
+     * @return a {@link CreateIncidentCommand} instance
+     * @throws IllegalArgumentException if the payload is missing required fields
+     */
+    public static CreateIncidentCommand map(WhatsAppPayload payload) {
+        var entry = payload.getEntry().getFirst();
+        var change = entry.getChanges().getFirst();
         var value = change.getValue();
+        var contact = value.getContacts().getFirst();
 
-        var contact = value.getContacts().get(0);
         String senderName = contact.getProfile().getName();
-
-        var message = value.getMessages().get(0);
+        var message = value.getMessages().getFirst();
         String from = message.getFrom();
         String text = message.getText() != null ? message.getText().getBody() : "";
         Instant timestamp = Instant.ofEpochSecond(Long.parseLong(message.getTimestamp()));
 
-        CreateIncidentCommand command = CreateIncidentCommand.builder()
+        return CreateIncidentCommand.builder()
                 .reporterId(from)
                 .reporterName(senderName)
                 .message(text)
                 .timestamp(timestamp)
                 .platform(Platform.WHATSAPP)
                 .build();
-
-        return command;
     }
 }
-
