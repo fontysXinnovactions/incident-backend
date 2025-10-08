@@ -2,9 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [ main, staging ]
+    branches:
+      - feature/*
+      - staging
+      - main
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - staging
+      - main
 
 jobs:
   test:
@@ -36,7 +41,6 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,4 +65,9 @@ jobs:
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fontysxinnovactions_incident-backend
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fontysxinnovactions_incident-backend -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.branch=${{ github.head_ref }} -Dsonar.pullrequest.base=${{ github.base_ref }}
+          else
+            mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fontysxinnovactions_incident-backend
+          fi
