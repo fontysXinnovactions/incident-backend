@@ -27,18 +27,16 @@ public class IncidentApplicationService implements IncidentInboundPort {
     private final SeverityClassifierPort severityClassifier;
     private final IncidentClosurePort incidentClosurePort;
     private final List<IncidentReporterNotifierPort> reporterNotifiers;
+    private final ConversationContextService conversationContextService;
 
 
     @Override
     public String reportIncident(CreateIncidentCommand command) {
-        //NOTE: Classify the severity of the incident report
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
 
-
-        String channelId = broadcaster.broadcast(incident, command.platform());
-
+        return broadcaster.broadcast(incident, command.platform());
     }
 
     @Override
@@ -58,17 +56,37 @@ public class IncidentApplicationService implements IncidentInboundPort {
     /**
      * Use-case: Interpret messages from a conversation
      * and determine if a message is an incident or not.
-     *<p>
-     * Example:
-     *  Message=<b>"Good morning" </b>=> not an incident
-     *<p>
-     *  Message="Hey Bob I can't login to my front end" => an incident
      *
      * @param command Incoming incident
      */
     @Override
-    public void updateIncident(UpdateIncidentCommand command) {
-        Incident updated = incidentService.updateIncident(command);
-        broadcaster.updateBroadcast(updated, command.channelId());
+    public void updateIncident(CreateIncidentCommand command) {
+        if (!isIncident(command)) return;
+
+        UpdateIncidentCommand updateCommand = conversationContextService.isNewOrExpired(command);
+
+        // If it's not an update, we simply create a new one and save it to context
+        if (updateCommand == null) {
+            String channelId = reportIncident(command);
+            conversationContextService.saveNewIncident(command, channelId);
+            return;
+        }
+        // If it's an update, we update context and send it to the existing channel
+        Incident updatedIncident = incidentService.updateIncident(updateCommand);
+        broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
+    }
+
+    /**
+     * DUMMY HELPER FUNCTION FAKING INCIDENT DETERMINATION
+     * TODO: MAKE INTELLIGENT INCIDENT DETERMINATION
+     */
+    private boolean isIncident(CreateIncidentCommand command) {
+        String[] keywords = {"down", "failure", "fail", "broken", "bad"};
+        for (String keyword : keywords) {
+            if (command.message().toLowerCase().contains(keyword.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

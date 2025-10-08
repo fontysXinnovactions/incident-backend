@@ -6,6 +6,6 @@ import com.innovactions.incident.application.command.UpdateIncidentCommand;
 
 public interface IncidentInboundPort {
     String reportIncident(CreateIncidentCommand command);
-    void updateIncident(UpdateIncidentCommand command);
+    void updateIncident(CreateIncidentCommand command);
     void closeIncident(CloseIncidentCommand incidentCommand);
 }

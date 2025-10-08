@@ -90,7 +90,7 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
 
     @Override
     public void updateBroadcast(Incident incident, String channelId) {
-        //If the channel exist and active update by sending the new message input
+        //If the channel exists and active update by sending the new message input
         if (channelId == null) {
             log.warn("No channelId available for update of incident {}", incident.getId());
             return;
