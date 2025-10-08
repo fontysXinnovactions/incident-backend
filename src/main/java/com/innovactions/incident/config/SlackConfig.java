@@ -1,6 +1,6 @@
 package com.innovactions.incident.config;
 
-import com.innovactions.incident.adapter.inbound.SlackInboundAdapter;
+import com.innovactions.incident.adapter.inbound.slack.SlackInboundAdapter;
 import com.innovactions.incident.adapter.outbound.SlackBroadcaster;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;

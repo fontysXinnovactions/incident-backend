@@ -1,5 +1,6 @@
 package com.innovactions.incident.application;
 
+import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.model.Severity;
@@ -26,4 +27,9 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     broadcaster.broadcast(incident);
   }
+
+    @Override
+    public void closeIncident(CloseIncidentCommand command) {
+
+    }
 }

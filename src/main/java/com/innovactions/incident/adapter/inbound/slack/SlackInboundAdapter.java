@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.inbound;
+package com.innovactions.incident.adapter.inbound.slack;
 
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
