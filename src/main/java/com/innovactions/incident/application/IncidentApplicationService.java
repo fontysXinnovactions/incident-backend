@@ -9,10 +9,15 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
+import com.innovactions.incident.port.outbound.IncidentReporterNotifierPort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IncidentApplicationService implements IncidentInboundPort {
@@ -21,22 +26,35 @@ public class IncidentApplicationService implements IncidentInboundPort {
     private final IncidentBroadcasterPort broadcaster;
     private final SeverityClassifierPort severityClassifier;
     private final IncidentClosurePort incidentClosurePort;
+    private final List<IncidentReporterNotifierPort> reporterNotifiers;
+
 
     @Override
     public String handle(CreateIncidentCommand command) {
+        //NOTE: Classify the severity of the incident report
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
 
-        return broadcaster.broadcast(incident, command.platform());//TODO: look for better ways to do it
-//        return broadcaster.broadcast(incident);//TODO: look for better ways to do it
+        //broadcast the incident to intended platform
+        return broadcaster.broadcast(incident, command.platform());
+
 
     }
 
     @Override
-    public void closeIncident(CloseIncidentCommand incidentCommand) {
-        incidentClosurePort.closeIncident(incidentCommand.developerUserId(), incidentCommand.channelId(), incidentCommand.reason());
+    public void closeIncident(CloseIncidentCommand command) {
+
+        String developerId = command.developerUserId();
+        String channelId = command.channelId();
+        String reason = command.reason();
+
+        // 1️⃣ Close the Slack channel (always done)
+        incidentClosurePort.closeIncident(developerId, channelId, reason);
+        log.info("Closure... reporter '{}' via {}", developerId, channelId);
+
     }
+
 
     @Override
     public void handle(UpdateIncidentCommand command) {

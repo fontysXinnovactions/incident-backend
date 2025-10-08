@@ -1,6 +1,6 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
-import com.innovactions.incident.adapter.outbound.WhatsApp.WhatsAppOutboundAdapter;
+import com.innovactions.incident.domain.event.IncidentClosedEvent;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
@@ -10,6 +10,7 @@ import com.slack.api.methods.response.conversations.ConversationsMembersResponse
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,7 +20,8 @@ import java.util.List;
 public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
     private final String botTokenB;
     private final String botTokenA;
-    private final WhatsAppOutboundAdapter whatsAppOutboundAdapter; //TODO: add to the config file
+    private final ApplicationEventPublisher eventPublisher;
+//    private final WhatsAppOutboundAdapter whatsAppOutboundAdapter; //TODO: add to the config file
 
     public void closeIncident(String developerUserId, String channelId, String reason) {
         try {
@@ -31,23 +33,23 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
 
             // remove all members from the incident channel
             removeAllMembers(channelId);
-            //FIXME: refactor use switch
-            // notify original reporter in workspace A
+
+            //publish event to listeners
             if (reporterInfo != null) {
-                if ("whatsapp".equalsIgnoreCase(reporterInfo.platform)) {
-                    notifyReporterWhatsApp(reporterInfo.reporterId, reason);
-                } else {
-                    notifyReporter(reporterInfo.reporterId, reason);
-                }
+                log.info("Publishing IncidentClosedEvent for reporter {} on platform {}",
+                        reporterInfo.reporterId, reporterInfo.platform);
+                eventPublisher.publishEvent(
+                        new IncidentClosedEvent(reporterInfo.reporterId, reporterInfo.platform, reason)
+                );
             }
-
-//            if (reporterInfo != null) {
-//                notifyReporter(reporterInfo.reporterId, reason);
-//            }
-
         } catch (Exception e) {
             log.error("Error closing incident in channel {}: {}", channelId, e.getMessage(), e);
         }
+    }
+
+    @Override
+    public String getPlatformName() {
+        return "slack";
     }
 
     private void announceClosure(String channelId, String developerUserId, String reason) {
@@ -70,6 +72,7 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
 
     private ReporterInfo extractReporterFromTopic(String channelId) {
         try {
+            log.info("Fetching channel topic for channel ID: {}", channelId);
             ConversationsInfoResponse response = Slack.getInstance().methods(botTokenB)
                     .conversationsInfo(req -> req.channel(channelId));
 
@@ -84,6 +87,8 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
                 if (parts.length >= 2) {
                     String reporterId = parts[0];
                     String platform = parts[1];
+                    //TODO: remove
+                    log.info("Extracted reporter info — reporterId: '{}', platform: '{}'", reporterId, platform);
                     return new ReporterInfo(reporterId, platform);
                 }
             }
@@ -131,24 +136,6 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
         }
     }
 
-    private void notifyReporter(String reporterId, String reason) {
-        try {
-            ChatPostMessageResponse response = Slack.getInstance().methods(botTokenA)
-                    .chatPostMessage(req -> req
-                            .channel(reporterId)
-                            .text("✅ Your reported incident has been closed.\nReason: " + reason)
-                    );
-
-            if (!response.isOk()) {
-                log.error("Failed to notify reporter {}: {}", reporterId, response.getError());
-            } else {
-                log.info("Notified reporter {} about incident closure", reporterId);
-            }
-        } catch (IOException | SlackApiException e) {
-            log.error("Error notifying reporter {}: {}", reporterId, e.getMessage(), e);
-        }
-    }
-
     private static class ReporterInfo {
         final String reporterId;
         final String platform;
@@ -158,15 +145,6 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
             this.platform = platform;
         }
     }
-    //TODO: divide this class its doing too much
-    private void notifyReporterWhatsApp(String phoneNumber, String reason) {
-        try {
-            String message = "✅ Your reported incident has been closed.\nReason: " + reason;
-            whatsAppOutboundAdapter.sendTextMessage(phoneNumber, message);
-            log.info("Notified WhatsApp reporter {} about incident closure", phoneNumber);
-        } catch (Exception e) {
-            log.error("Error notifying WhatsApp reporter {}: {}", phoneNumber, e.getMessage(), e);
-        }
-    }
+
 
 }

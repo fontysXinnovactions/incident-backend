@@ -2,12 +2,13 @@ package com.innovactions.incident.config;
 
 import com.innovactions.incident.adapter.inbound.slack.SlackCloseIncident;
 import com.innovactions.incident.adapter.inbound.slack.SlackCreateIncident;
+import com.innovactions.incident.adapter.inbound.slack.SlackReporterNotifierAdapter;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
-import com.innovactions.incident.adapter.outbound.WhatsApp.WhatsAppOutboundAdapter;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
+import com.innovactions.incident.port.outbound.IncidentReporterNotifierPort;
 import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
 import com.slack.api.bolt.jakarta_servlet.SlackAppServlet;
@@ -16,9 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+
 
 import java.util.concurrent.CompletableFuture;
 
@@ -105,8 +107,17 @@ public class SlackConfig {
     @Bean
     public IncidentClosurePort incidentClosureBroadcaster(
             @Value("${slack.botTokenB}") String botTokenB,
-            @Value("${slack.botTokenA}") String botTokenA, @Lazy WhatsAppOutboundAdapter whatsAppOutboundAdapter
-    ) {//FIXME: Remove whatsApp adapter its only for testing purposes
-        return new SlackIncidentClosureBroadcaster(botTokenB, botTokenA, whatsAppOutboundAdapter);
+            @Value("${slack.botTokenA}") String botTokenA, ApplicationEventPublisher eventPublisher
+    ) {
+        return new SlackIncidentClosureBroadcaster(botTokenB, botTokenA, eventPublisher);
     }
+
+    //FIXME: check if this is needed
+    @Bean
+    public IncidentReporterNotifierPort slackReporterNotifierAdapter(
+            @Value("${slack.botTokenA}") String botTokenA
+    ) {
+        return new SlackReporterNotifierAdapter(botTokenA);
+    }
+
 }

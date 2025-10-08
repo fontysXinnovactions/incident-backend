@@ -2,11 +2,13 @@ package com.innovactions.incident.adapter.inbound.slack;
 
 import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RestController
 @RequestMapping("/slack/events")
 public class SlackController {
@@ -32,7 +34,7 @@ public class SlackController {
         CompletableFuture.runAsync(() -> {
             try {
                 CloseIncidentCommand command = new CloseIncidentCommand(user_id, channel_id, reason);
-
+                log.info(command.toString());
 
                 incidentInboundPort.closeIncident(command);
             } catch (Exception e) {
