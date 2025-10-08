@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/slack/events")
+@RequestMapping("/slack/manager")
 public class SlackController {
 
   private final IncidentInboundPort incidentInboundPort;
