@@ -1,5 +1,6 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
+import com.innovactions.incident.application.Platform;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
@@ -24,7 +25,7 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     private final ChannelNameGenerator channelNameGenerator;
 
     @Override
-    public String broadcast(Incident incident, String platform) {
+    public String broadcast(Incident incident, Platform platform) {
         //NOTE: Create new incident with uniq channel name in slack
         //NOTE: Return the channel id as a String
         try {

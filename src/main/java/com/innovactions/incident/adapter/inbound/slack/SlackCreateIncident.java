@@ -44,6 +44,6 @@ public class SlackCreateIncident {
                 ""//FIXME: check the limitation
         );
 
-        incidentInboundPort.handlePossibleIncident(command);
+        incidentInboundPort.reportIncident(command);
     }
 }

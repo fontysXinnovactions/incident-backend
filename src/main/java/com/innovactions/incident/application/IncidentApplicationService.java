@@ -30,21 +30,14 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
 
     @Override
-    public String handleNewIncident(CreateIncidentCommand command) {
-
-        if (command.platform() == Platform.WHATSAPP) {
-            // check context if true or false
-        }
+    public String reportIncident(CreateIncidentCommand command) {
         //NOTE: Classify the severity of the incident report
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
 
 
-        //broadcast the incident to intended platform
         String channelId = broadcaster.broadcast(incident, command.platform());
-
-        // ifcontext returned true then update context
 
     }
 
@@ -74,7 +67,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
      * @param command Incoming incident
      */
     @Override
-    public void handlePossibleIncident(UpdateIncidentCommand command) {
+    public void updateIncident(UpdateIncidentCommand command) {
         Incident updated = incidentService.updateIncident(command);
         broadcaster.updateBroadcast(updated, command.channelId());
     }

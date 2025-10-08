@@ -8,13 +8,11 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 @NoArgsConstructor
-public final class WhatsAppPayloadToCreateIncidentCommandMapper {
+public final class WhatsAppIncidentCommandMapper {
 
     /**
      * Maps {@link WhatsAppPayload} to {@link CreateIncidentCommand}.
      *
-     * @param payload the incoming WhatsApp payload
-     * @return a {@link CreateIncidentCommand} instance
      * @throws IllegalArgumentException if the payload is missing required fields
      */
     public static CreateIncidentCommand map(WhatsAppPayload payload) {
