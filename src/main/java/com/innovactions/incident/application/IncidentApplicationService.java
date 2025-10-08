@@ -28,8 +28,6 @@ public class IncidentApplicationService implements IncidentInboundPort {
     broadcaster.broadcast(incident);
   }
 
-    @Override
-    public void closeIncident(CloseIncidentCommand command) {
-
-    }
+  @Override
+  public void closeIncident(CloseIncidentCommand command) {}
 }
