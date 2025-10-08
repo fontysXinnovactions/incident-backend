@@ -23,3 +23,11 @@ slack:
   botTokenA: ${SLACK_BOT_TOKEN_A}
   botTokenB: ${SLACK_BOT_TOKEN_B}
   broadcastChannel: ${BROADCAST_CHANNEL}
+whatsapp:
+  verifyToken: ${VERIFY_TOKEN}
+  apiUrl: ${WHATSAPP_API_URL}
+  accessToken: ${WHATSAPP_ACCESS_TOKEN}
+  phoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID}
+
+
+

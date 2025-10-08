@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.outbound;
+package com.innovactions.incident.adapter.outbound.AI;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
