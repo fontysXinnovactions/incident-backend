@@ -9,16 +9,11 @@ import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
-import com.slack.api.methods.response.conversations.ConversationsCreateResponse;
-import com.slack.api.methods.response.conversations.ConversationsInviteResponse;
-import com.slack.api.methods.response.conversations.ConversationsSetTopicResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @RequiredArgsConstructor
 public class SlackBroadcaster implements IncidentBroadcasterPort {
 
@@ -57,4 +52,5 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
 
         log.info("Incident broadcasted to new channel {}: {}", channelName, incident.getId());
     }
+  }
 }

@@ -18,8 +18,7 @@ import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
 import com.slack.api.bolt.jakarta_servlet.SlackAppServlet;
 import jakarta.servlet.Servlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +30,8 @@ import java.util.concurrent.CompletableFuture;
 @Configuration
 public class SlackConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(SlackConfig.class);
+  @Value("${slack.signingSecret}")
+  private String signingSecret;
 
     @Value("${slack.signingSecretA}")
     private String signingSecretA;
@@ -39,8 +39,10 @@ public class SlackConfig {
     @Value("${slack.signingSecretB}")
     private String signingSecretB;
 
-    @Value("${slack.botTokenA}")
-    private String botTokenA;
+  @Bean
+  public App slackApp(SlackInboundAdapter slackInboundAdapter) {
+    var appConfig =
+        AppConfig.builder().signingSecret(signingSecret).singleTeamBotToken(botTokenA).build();
 
     @Value("${slack.botTokenB}")
     private String botTokenB;
@@ -53,16 +55,20 @@ public class SlackConfig {
                 .singleTeamBotToken(botTokenA)
                 .build();
 
-        var app = new App(appConfig);
+    app.event(
+        com.slack.api.model.event.AppMentionEvent.class,
+        (payload, context) -> {
+          // acknowledge the event so slack doesnt retry
+          var ack = context.ack();
 
         app.event(com.slack.api.model.event.AppMentionEvent.class, (payload, context) -> {
             var ack = context.ack();
             CompletableFuture.runAsync(() -> {
                 try {
-                    slackInboundAdapter.handle(payload.getEvent(), context);
-                    context.say("Incident noted! Thanks, we’ll look into it.");
+                  slackInboundAdapter.handle(payload.getEvent(), context);
+                  context.say("Incident noted! Thanks, we’ll look into it.");
                 } catch (Exception e) {
-                    // pass
+                  // pass
                 }
             });
             return ack;
