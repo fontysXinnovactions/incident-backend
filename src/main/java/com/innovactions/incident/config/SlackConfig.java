@@ -7,7 +7,7 @@ import com.innovactions.incident.adapter.inbound.slack.SlackReporterFlow;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.SlackBotMessagingAdapter;
 import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter;
-import com.innovactions.incident.adapter.outbound.SlackIncidentClosureBroadcaster;
+import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
