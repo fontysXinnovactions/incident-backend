@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test")
 @RequiredArgsConstructor
 public class WhatsAppTestController {
-    private final WhatsAppOutboundAdapter outboundAdapter;
+  private final WhatsAppOutboundAdapter outboundAdapter;
 
-    @GetMapping("/send")
-    public String sendTestMessage() {
-        outboundAdapter.sendTextMessage("31619315253", "Hello from Outbound POC");
-        return "Message triggered!";
-    }
+  @GetMapping("/send")
+  public String sendTestMessage() {
+    outboundAdapter.sendTextMessage("31619315253", "Hello from Outbound POC");
+    return "Message triggered!";
+  }
 }

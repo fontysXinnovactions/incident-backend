@@ -9,24 +9,24 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class WhatsAppIncidentClosureBroadcaster implements IncidentReporterNotifierPort {
-    private final WhatsAppOutboundAdapter whatsAppOutboundAdapter;
+  private final WhatsAppOutboundAdapter whatsAppOutboundAdapter;
 
-    @Override
-    public void notifyReporter(String reporterId, String reason) {
-        try {
-            String message = "✅ Your reported incident has been closed.\nReason: " + reason;
+  @Override
+  public void notifyReporter(String reporterId, String reason) {
+    try {
+      String message = "✅ Your reported incident has been closed.\nReason: " + reason;
 
-            // In WhatsApp's case, channelId = reporter's phone number
-            whatsAppOutboundAdapter.sendTextMessage(reporterId, message);
+      // In WhatsApp's case, channelId = reporter's phone number
+      whatsAppOutboundAdapter.sendTextMessage(reporterId, message);
 
-            log.info("Notified WhatsApp reporter {} about incident closure", reporterId);
-        } catch (Exception e) {
-            log.error("Error notifying WhatsApp reporter {}: {}", reporterId, e.getMessage(), e);
-        }
+      log.info("Notified WhatsApp reporter {} about incident closure", reporterId);
+    } catch (Exception e) {
+      log.error("Error notifying WhatsApp reporter {}: {}", reporterId, e.getMessage(), e);
     }
+  }
 
-    @Override
-    public String getPlatformName() {
-        return "whatsapp";
-    }
+  @Override
+  public String getPlatformName() {
+    return "whatsapp";
+  }
 }
