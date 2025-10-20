@@ -1,5 +1,6 @@
 package com.innovactions.incident.adapter.inbound.slack;
 
+import com.innovactions.incident.application.Platform;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
@@ -62,9 +63,11 @@ public class SlackReporterFlow {
                                 userId,
                                 reporterName,
                                 text,
-                                Instant.now()
+                                Instant.now(),
+                                Platform.WHATSAPP//Fixme: get the appropriate platform
+
                         );
-                        incidentInboundPort.handle(command);
+                        incidentInboundPort.reportIncident(command);
                         reporterBotMessagingPort.sendMessage(userId, "Bug assigned to an available developer. We will notify you when it's resolved.");
                     } catch (Exception e) {
                         // pass

@@ -26,8 +26,8 @@ public class IncidentApplicationService implements IncidentInboundPort {
     private final IncidentBroadcasterPort broadcaster;
     private final SeverityClassifierPort severityClassifier;
     private final IncidentClosurePort incidentClosurePort;
-    private final List<IncidentReporterNotifierPort> reporterNotifiers;
-    private final ConversationContextService conversationContextService;
+//    private final List<IncidentReporterNotifierPort> reporterNotifiers;
+//    private final ConversationContextService conversationContextService;
 
 
     @Override
@@ -61,19 +61,19 @@ public class IncidentApplicationService implements IncidentInboundPort {
      */
     @Override
     public void updateIncident(CreateIncidentCommand command) {
-        if (!isIncident(command)) return;
-
-        UpdateIncidentCommand updateCommand = conversationContextService.isNewOrExpired(command);
-
-        // If it's not an update, we simply create a new one and save it to context
-        if (updateCommand == null) {
-            String channelId = reportIncident(command);
-            conversationContextService.saveNewIncident(command, channelId);
-            return;
-        }
-        // If it's an update, we update context and send it to the existing channel
-        Incident updatedIncident = incidentService.updateIncident(updateCommand);
-        broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
+//        if (!isIncident(command)) return;
+//
+//        UpdateIncidentCommand updateCommand = conversationContextService.isNewOrExpired(command);
+//
+//        // If it's not an update, we simply create a new one and save it to context
+//        if (updateCommand == null) {
+//            String channelId = reportIncident(command);
+//            conversationContextService.saveNewIncident(command, channelId);
+//            return;
+//        }
+//        // If it's an update, we update context and send it to the existing channel
+//        Incident updatedIncident = incidentService.updateIncident(updateCommand);
+//        broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
     }
 
     /**

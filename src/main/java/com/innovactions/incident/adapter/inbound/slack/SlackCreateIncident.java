@@ -1,5 +1,6 @@
 package com.innovactions.incident.adapter.inbound.slack;
 
+import com.innovactions.incident.application.Platform;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.slack.api.Slack;
@@ -41,7 +42,8 @@ public class SlackCreateIncident {
                 reporterName,
                 cleanText,
                 Instant.now(),
-                ""//FIXME: check the limitation
+                Platform.WHATSAPP
+//                ""//FIXME: check the limitation
         );
 
         incidentInboundPort.reportIncident(command);

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/webhook")
+@RequestMapping("/whatsapp/webhook")
 @RequiredArgsConstructor
 public class WhatsAppWebhookController {
 

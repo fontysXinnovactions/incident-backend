@@ -15,6 +15,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF off
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/whatsapp/webhook",
                             "/slack/events", 
                             "/slack/reporter", 
                             "/slack/manager", 
