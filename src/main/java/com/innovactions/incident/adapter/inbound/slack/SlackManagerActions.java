@@ -7,11 +7,14 @@ import com.slack.api.bolt.App;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * <p>Handles manager actions in Slack incident channels.</p>
+ * <p>Used with the Manager Bot in developer context</p>
+ */
 @Component
 @RequiredArgsConstructor
 public class SlackManagerActions {
 
-    private final String botTokenB;
     private final ChannelAdministrationPort channelAdministrationPort;
     private final BotMessagingPort managerBotMessagingPort;
 

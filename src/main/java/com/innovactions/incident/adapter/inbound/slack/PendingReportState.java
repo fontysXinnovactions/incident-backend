@@ -5,6 +5,10 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * <p>Tracks pending incident reports per user to prevent duplicate reports.</p>
+ * <p>Used with the Reporter Bot</p>
+ */
 @Component
 public class PendingReportState {
 

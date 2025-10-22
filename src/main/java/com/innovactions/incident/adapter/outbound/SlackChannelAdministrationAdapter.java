@@ -9,6 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * <p>Adapter for Slack channel administration tasks (Create channel, set topic, invite/kick users).</p>
+ * <p>Implements the ChannelAdministrationPort interface for Slack platform.</p>
+ */
 @Slf4j
 public class SlackChannelAdministrationAdapter implements ChannelAdministrationPort {
 

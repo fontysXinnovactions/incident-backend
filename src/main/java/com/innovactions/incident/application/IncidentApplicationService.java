@@ -9,13 +9,10 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
-import com.innovactions.incident.port.outbound.IncidentReporterNotifierPort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -26,7 +23,6 @@ public class IncidentApplicationService implements IncidentInboundPort {
     private final IncidentBroadcasterPort broadcaster;
     private final SeverityClassifierPort severityClassifier;
     private final IncidentClosurePort incidentClosurePort;
-    private final List<IncidentReporterNotifierPort> reporterNotifiers;
     private final ConversationContextService conversationContextService;
 
 

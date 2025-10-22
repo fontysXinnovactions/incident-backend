@@ -9,6 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
+/**
+ * <p>Adapter for sending messages via a Slack bot (Normal DM message, DM with blocks message).</p>
+ * <p>Implements the BotMessagingPort interface for Slack platform.</p>
+ */
 @Slf4j
 public class SlackBotMessagingAdapter implements BotMessagingPort {
 
