@@ -27,14 +27,22 @@ public class IncidentApplicationService implements IncidentInboundPort {
     private final SeverityClassifierPort severityClassifier;
     private final IncidentClosurePort incidentClosurePort;
 //    private final List<IncidentReporterNotifierPort> reporterNotifiers;
-//    private final ConversationContextService conversationContextService;
+    private final ConversationContextService conversationContextService;
 
 
     @Override
     public String reportIncident(CreateIncidentCommand command) {
+        boolean hasActiveContext = conversationContextService.hasActiveContext(command);
+        if (hasActiveContext) {
+            updateExistingIncident(command);
+            return null;
+        }
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
+        //FIXME: its a work around
+        String channelId = broadcaster.broadcast(incident, command.platform());
+        conversationContextService.saveNewIncident(command, channelId);
 
         return broadcaster.broadcast(incident, command.platform());
     }
@@ -60,20 +68,20 @@ public class IncidentApplicationService implements IncidentInboundPort {
      * @param command Incoming incident
      */
     @Override
-    public void updateIncident(CreateIncidentCommand command) {
+    public void updateExistingIncident(CreateIncidentCommand command) {
 //        if (!isIncident(command)) return;
-//
-//        UpdateIncidentCommand updateCommand = conversationContextService.isNewOrExpired(command);
-//
-//        // If it's not an update, we simply create a new one and save it to context
-//        if (updateCommand == null) {
-//            String channelId = reportIncident(command);
-//            conversationContextService.saveNewIncident(command, channelId);
-//            return;
-//        }
-//        // If it's an update, we update context and send it to the existing channel
-//        Incident updatedIncident = incidentService.updateIncident(updateCommand);
-//        broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
+
+        UpdateIncidentCommand updateCommand = conversationContextService.isNewOrExpired(command);
+
+        // If it's not an update, we simply create a new one and save it to context
+        if (updateCommand == null) {
+            String channelId = reportIncident(command);
+            conversationContextService.saveNewIncident(command, channelId);
+            return;
+        }
+        // If it's an update, we update context and send it to the existing channel
+        Incident updatedIncident = incidentService.updateIncident(updateCommand);
+        broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
     }
 
     /**
