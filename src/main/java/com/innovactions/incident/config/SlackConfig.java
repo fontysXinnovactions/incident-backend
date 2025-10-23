@@ -20,6 +20,7 @@ import com.slack.api.bolt.jakarta_servlet.SlackAppServlet;
 import jakarta.servlet.Servlet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -137,9 +138,9 @@ public class SlackConfig {
     @Bean
     public IncidentClosurePort incidentClosureBroadcaster(BotMessagingPort reporterBotMessagingPort,
                                                           BotMessagingPort managerBotMessagingPort,
-                                                          ChannelAdministrationPort channelAdministrationPort) {
+                                                          ChannelAdministrationPort channelAdministrationPort, ApplicationEventPublisher eventPublisher) {
         return new SlackIncidentClosureBroadcaster(botTokenB, reporterBotMessagingPort,
-                managerBotMessagingPort, channelAdministrationPort);
+                managerBotMessagingPort, channelAdministrationPort, eventPublisher);
     }
 
     @Bean
