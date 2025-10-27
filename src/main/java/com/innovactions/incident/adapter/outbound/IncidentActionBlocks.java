@@ -13,6 +13,10 @@ public final class IncidentActionBlocks {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    private IncidentActionBlocks() {
+        throw new AssertionError("Utility class should not be instantiated.");
+    }
+
     public static String reporterButtons() {
         return toJson(List.of(
                 Map.of(

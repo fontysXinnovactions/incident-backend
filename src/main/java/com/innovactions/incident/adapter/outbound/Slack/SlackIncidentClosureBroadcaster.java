@@ -1,5 +1,6 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
+import com.innovactions.incident.application.Platform;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
 import com.slack.api.Slack;
@@ -21,8 +22,8 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
     private final BotMessagingPort managerBotMessagingPort;
 
     @Override
-    public String getPlatformName() {
-        return "Slack";
+    public Platform getPlatformName() {
+        return Platform.SLACK;
     }
 
     public void closeIncident(String developerUserId, String channelId, String reason) {
