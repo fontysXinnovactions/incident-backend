@@ -49,20 +49,14 @@ public final class IncidentActionBlocks {
     }
 
     private static Map<String, Object> button(String text, String actionId, String style) {
-        var button = Map.<String, Object>of(
-                "type", "button",
-                "text", Map.of("type", "plain_text", "text", text),
-                "action_id", actionId
-        );
-
-        if (style == null) return button;
-
-        return Map.of(
-                "type", "button",
-                "text", Map.of("type", "plain_text", "text", text),
-                "style", style,
-                "action_id", actionId
-        );
+        var button = new java.util.HashMap<String, Object>();
+        button.put("type", "button");
+        button.put("text", Map.of("type", "plain_text", "text", text));
+        button.put("action_id", actionId);
+        if (style != null) {
+            button.put("style", style);
+        }
+        return button;
     }
 
     private static String toJson(Object obj) {
