@@ -42,8 +42,8 @@ public class SlackCreateIncident {
                 reporterName,
                 cleanText,
                 Instant.now(),
-                Platform.WHATSAPP
-//                ""//FIXME: check the limitation
+                Platform.SLACK
+
         );
 
         incidentInboundPort.reportIncident(command);

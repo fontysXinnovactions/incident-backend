@@ -26,25 +26,28 @@ public class IncidentApplicationService implements IncidentInboundPort {
     private final IncidentBroadcasterPort broadcaster;
     private final SeverityClassifierPort severityClassifier;
     private final IncidentClosurePort incidentClosurePort;
-//    private final List<IncidentReporterNotifierPort> reporterNotifiers;
     private final ConversationContextService conversationContextService;
 
-
+    /**
+     * Handles a new incident report from the user.
+     * <p>
+     * Checks if an active conversation exists using .
+     * If active, delegates to {@link #updateExistingIncident(CreateIncidentCommand)};
+     * otherwise, creates and broadcasts a new incident.
+     */
     @Override
-    public String reportIncident(CreateIncidentCommand command) {
+    public void reportIncident(CreateIncidentCommand command) {
         boolean hasActiveContext = conversationContextService.hasActiveContext(command);
         if (hasActiveContext) {
             updateExistingIncident(command);
-            return null;
+            return;
         }
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
-        //FIXME: its a work around
         String channelId = broadcaster.broadcast(incident, command.platform());
         conversationContextService.saveNewIncident(command, channelId);
 
-        return broadcaster.broadcast(incident, command.platform());
     }
 
     @Override
@@ -60,41 +63,25 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     }
 
-
     /**
      * Use-case: Interpret messages from a conversation
      * and determine if a message is an incident or not.
-     *
      * @param command Incoming incident
      */
     @Override
     public void updateExistingIncident(CreateIncidentCommand command) {
-//        if (!isIncident(command)) return;
 
-        UpdateIncidentCommand updateCommand = conversationContextService.isNewOrExpired(command);
+        UpdateIncidentCommand updateCommand = conversationContextService.findValidUpdateContext(command);
 
-        // If it's not an update, we simply create a new one and save it to context
+        // If it's not an update return
         if (updateCommand == null) {
-            String channelId = reportIncident(command);
-            conversationContextService.saveNewIncident(command, channelId);
-            return;
+            log.info("No valid update context found for reporter {} — starting new incident flow.",
+                    command.reporterId());
+           return;
         }
-        // If it's an update, we update context and send it to the existing channel
+        // If it's an update, update context and send it to the existing channel
         Incident updatedIncident = incidentService.updateIncident(updateCommand);
         broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
     }
 
-    /**
-     * DUMMY HELPER FUNCTION FAKING INCIDENT DETERMINATION
-     * TODO: MAKE INTELLIGENT INCIDENT DETERMINATION
-     */
-    private boolean isIncident(CreateIncidentCommand command) {
-        String[] keywords = {"down", "failure", "fail", "broken", "bad"};
-        for (String keyword : keywords) {
-            if (command.message().toLowerCase().contains(keyword.toLowerCase())) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

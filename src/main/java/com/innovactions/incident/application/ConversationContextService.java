@@ -2,31 +2,34 @@ package com.innovactions.incident.application;
 
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
-import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.ConversationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConversationContextService {
-//    private final IncidentInboundPort incidentInboundPort;
+
     private final ConversationRepositoryPort conversationRepository;
 
-    public UpdateIncidentCommand isNewOrExpired(CreateIncidentCommand command) {
+     /**
+     * Finds and updates a valid conversation context for a user.
+     * <p>
+     * Uses {@link #hasActiveContext(CreateIncidentCommand)} to check if the context
+     * Returns an {@link UpdateIncidentCommand} if the context exists and is not expired.
+     */
+    public UpdateIncidentCommand findValidUpdateContext(CreateIncidentCommand command) {
         var context = conversationRepository.findActiveByUser(command.reporterId());
-        if (context.isPresent()) {
-            var ctx = context.get();
-            boolean expired = command.timestamp()
-                    .isAfter(context.get().lastMessageAt().plus(Duration.ofHours(24)));
+        if (context.isEmpty()) {
+            return null;
+        }
+        var ctx = context.get();
+        if (hasActiveContext(command)) {
 
-            // If it has not expired, we update it and send the new message to the end-user conversation
-            if (!expired) {
                 conversationRepository.update(
                         ctx.userId(),
                         ctx.incidentId(),
@@ -39,18 +42,21 @@ public class ConversationContextService {
                         .message(command.message())
                         .updatedAt(command.timestamp())
                         .build();
-            }
-        }
 
-        //If it is new or expired, we return null and go through the new incident flow
+        }
         return null;
     }
 
     public void saveNewIncident(CreateIncidentCommand command, String channelId) {
         conversationRepository.saveNew(command.reporterId(),"INCIDENT-" + command.timestamp(), channelId, command.timestamp());
     }
-    //FIXME: Refactor this is only to restore functionality
+
+    /**
+     * Checks if the user has an active conversation context.
+     * A context is active if it exists and is not older than 24 hours.
+     */
     public boolean hasActiveContext(CreateIncidentCommand command) {
+        // Find user's active conversation (if any)
         var context = conversationRepository.findActiveByUser(command.reporterId());
         if (context.isEmpty()) {
             log.debug("No active context found for {}", command.reporterId());
@@ -58,6 +64,7 @@ public class ConversationContextService {
         }
 
         var ctx = context.get();
+        // Check if the last message was more than 24 hours ago
         boolean expired = command.timestamp()
                 .isAfter(ctx.lastMessageAt().plus(Duration.ofHours(24)));
 

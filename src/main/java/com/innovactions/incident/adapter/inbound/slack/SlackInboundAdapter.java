@@ -38,7 +38,7 @@ public class SlackInboundAdapter {
     }
 
     CreateIncidentCommand command =
-        new CreateIncidentCommand(userId, reporterName, cleanText, Instant.now(), Platform.SLACK);//Fixme: platform conformity check
+        new CreateIncidentCommand(userId, reporterName, cleanText, Instant.now(), Platform.SLACK);
 
     incidentInboundPort.reportIncident(command);
   }
