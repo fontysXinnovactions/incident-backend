@@ -36,11 +36,8 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
             // remove all members from the incident channel
             removeAllMembers(channelId);
 
-            // notify original reporter in workspace A
-//            if (reporterInfo != null) {
-//                notifyReporter(reporterInfo.reporterId, reason);
-//            }
-            //FIXME: Explain functionality
+            // publish an event which has reporter's information, platform to and closure reason
+            // supports multiplatform notification (currently whatsapp and slack)
             if (reporterInfo != null) {
                 log.info("Publishing IncidentClosedEvent for reporter {} on platform {}",
                         reporterInfo.reporterId, reporterInfo.platform);
