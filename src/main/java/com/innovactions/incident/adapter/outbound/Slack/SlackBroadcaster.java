@@ -23,7 +23,7 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     private final ChannelAdministrationPort channelAdministrationPort;
 
     @Override
-    public String broadcast(Incident incident, Platform platform) {
+    public String initSlackDeveloperWorkspace(Incident incident, Platform platform) {
         // generate channel name based on severity and timestamp
         String channelName = channelNameGenerator.generateChannelName(incident.getSeverity());
 
@@ -55,7 +55,7 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     }
 
     @Override
-    public void updateBroadcast(Incident incident, String channelId) {
+    public void updateIncidentToDeveloper(Incident incident, String channelId) {
         // if the channel exists and is active, update by sending the new message input
         if (channelId == null) {
             log.warn("No channelId available for update of incident {}", incident.getId());

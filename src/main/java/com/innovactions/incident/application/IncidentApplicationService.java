@@ -32,7 +32,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
         Incident incident = incidentService.createIncident(command, severity);
 
-        return broadcaster.broadcast(incident, command.platform());
+        return broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
     }
 
     @Override
@@ -69,7 +69,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
         }
         // If it's an update, we update context and send it to the existing channel
         Incident updatedIncident = incidentService.updateIncident(updateCommand);
-        broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
+        broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
     }
 
     /**
