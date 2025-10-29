@@ -2,6 +2,9 @@ package com.innovactions.incident.port.outbound;
 
 import java.util.List;
 
+/**
+ * <p>Port interface for Slack channel administration tasks (Create channel, set topic, invite/kick users).</p>
+ */
 public interface ChannelAdministrationPort {
     String createPublicChannel(String name);
     void setChannelTopic(String channelId, String topic);

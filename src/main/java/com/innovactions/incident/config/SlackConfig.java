@@ -7,7 +7,7 @@ import com.innovactions.incident.adapter.inbound.slack.SlackReporterFlow;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.SlackBotMessagingAdapter;
 import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter;
-import com.innovactions.incident.adapter.outbound.SlackIncidentClosureBroadcaster;
+import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
@@ -130,22 +130,19 @@ public class SlackConfig {
     }
 
     @Bean
-    public IncidentBroadcasterPort slackBroadcaster(ChannelNameGenerator channelNameGenerator) {
-        return new SlackBroadcaster(botTokenB, developerUserId, channelNameGenerator);
+    public IncidentBroadcasterPort slackBroadcaster(ChannelNameGenerator channelNameGenerator, BotMessagingPort managerBotMessagingPort, ChannelAdministrationPort channelAdministrationPort) {
+        return new SlackBroadcaster(developerUserId, channelNameGenerator, managerBotMessagingPort, channelAdministrationPort);
     }
 
     @Bean
-    public IncidentClosurePort incidentClosureBroadcaster(BotMessagingPort reporterBotMessagingPort,
-                                                          BotMessagingPort managerBotMessagingPort,
-                                                          ChannelAdministrationPort channelAdministrationPort) {
+    public IncidentClosurePort incidentClosureBroadcaster(BotMessagingPort reporterBotMessagingPort, BotMessagingPort managerBotMessagingPort) {
         return new SlackIncidentClosureBroadcaster(botTokenB, reporterBotMessagingPort,
-                managerBotMessagingPort, channelAdministrationPort);
+                managerBotMessagingPort);
     }
 
     @Bean
-    public SlackManagerActions slackManagerActions(ChannelAdministrationPort channelAdministrationPort,
-                                                   BotMessagingPort managerBotMessagingPort) {
-        return new SlackManagerActions(botTokenB, channelAdministrationPort, managerBotMessagingPort);
+    public SlackManagerActions slackManagerActions(ChannelAdministrationPort channelAdministrationPort, BotMessagingPort managerBotMessagingPort) {
+        return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort);
     }
 
     @Bean

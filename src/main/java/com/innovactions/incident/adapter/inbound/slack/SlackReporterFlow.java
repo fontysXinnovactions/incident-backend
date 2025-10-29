@@ -1,5 +1,6 @@
 package com.innovactions.incident.adapter.inbound.slack;
 
+import com.innovactions.incident.application.Platform;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
@@ -12,6 +13,10 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * <p>Handles the flow of the Reporter Bot and show actions that can be taken in Slack.</p>
+ * <p>Used with the Reporter Bot in client context</p>
+ */
 @Component
 @RequiredArgsConstructor
 public class SlackReporterFlow {
@@ -62,9 +67,10 @@ public class SlackReporterFlow {
                                 userId,
                                 reporterName,
                                 text,
-                                Instant.now()
+                                Instant.now(),
+                                Platform.SLACK
                         );
-                        incidentInboundPort.handle(command);
+                        incidentInboundPort.reportIncident(command);
                         reporterBotMessagingPort.sendMessage(userId, "Bug assigned to an available developer. We will notify you when it's resolved.");
                     } catch (Exception e) {
                         // pass

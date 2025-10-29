@@ -2,19 +2,16 @@ package com.innovactions.incident.application;
 
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
-import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.ConversationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 
 
 @Service
 @RequiredArgsConstructor
 public class ConversationContextService {
-    private final IncidentInboundPort incidentInboundPort;
     private final ConversationRepositoryPort conversationRepository;
 
     public UpdateIncidentCommand isNewOrExpired(CreateIncidentCommand command) {
