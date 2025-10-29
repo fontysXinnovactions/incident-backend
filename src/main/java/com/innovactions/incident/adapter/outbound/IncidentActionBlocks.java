@@ -67,5 +67,3 @@ public final class IncidentActionBlocks {
         return MAPPER.valueToTree(obj).toString();
     }
 }
-
-

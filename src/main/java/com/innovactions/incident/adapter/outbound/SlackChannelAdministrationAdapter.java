@@ -31,6 +31,7 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
                 log.error("Failed to create channel {}: {}", name, res.getError());
                 return null;
             }
+            log.info("Created channel {} for incident: {}", name, res.getChannel().getId());
             return res.getChannel().getId();
         } catch (IOException | SlackApiException e) {
             log.error("Error creating channel {}: {}", name, e.getMessage(), e);
@@ -59,6 +60,7 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
             if (!res.isOk()) {
                 log.warn("Failed to invite users to {}: {}", channelId, res.getError());
             }
+            log.info("Invited users to channel {}: {}", channelId, String.join(", ", userIds));
         } catch (IOException | SlackApiException e) {
             log.error("Error inviting users to {}: {}", channelId, e.getMessage(), e);
         }
