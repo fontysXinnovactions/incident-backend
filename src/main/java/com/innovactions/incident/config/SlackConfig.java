@@ -3,6 +3,7 @@ package com.innovactions.incident.config;
 import com.innovactions.incident.adapter.inbound.slack.*;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
+import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentReporterNotifierAdapter;
 import com.innovactions.incident.adapter.outbound.SlackBotMessagingAdapter;
 import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;

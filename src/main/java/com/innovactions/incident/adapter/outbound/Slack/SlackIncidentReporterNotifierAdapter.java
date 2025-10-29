@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.inbound.slack;
+package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.port.outbound.IncidentReporterNotifierPort;
 import com.slack.api.Slack;
@@ -6,7 +6,6 @@ import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
