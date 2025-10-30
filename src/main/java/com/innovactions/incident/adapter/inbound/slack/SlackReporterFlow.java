@@ -13,6 +13,10 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * <p>Handles the flow of the Reporter Bot and show actions that can be taken in Slack.</p>
+ * <p>Used with the Reporter Bot in client context</p>
+ */
 @Component
 @RequiredArgsConstructor
 public class SlackReporterFlow {
@@ -64,8 +68,7 @@ public class SlackReporterFlow {
                                 reporterName,
                                 text,
                                 Instant.now(),
-                                Platform.WHATSAPP//Fixme: get the appropriate platform
-
+                                Platform.SLACK
                         );
                         incidentInboundPort.reportIncident(command);
                         reporterBotMessagingPort.sendMessage(userId, "Bug assigned to an available developer. We will notify you when it's resolved.");

@@ -9,13 +9,10 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
-import com.innovactions.incident.port.outbound.IncidentReporterNotifierPort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -45,7 +42,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
         Severity severity = severityClassifier.classify(command.message());
 
         Incident incident = incidentService.createIncident(command, severity);
-        String channelId = broadcaster.broadcast(incident, command.platform());
+        String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
         conversationContextService.saveNewIncident(command, channelId);
 
     }
@@ -63,9 +60,11 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     }
 
+
     /**
      * Use-case: Interpret messages from a conversation
      * and determine if a message is an incident or not.
+     *
      * @param command Incoming incident
      */
     @Override
@@ -81,7 +80,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
         }
         // If it's an update, update context and send it to the existing channel
         Incident updatedIncident = incidentService.updateIncident(updateCommand);
-        broadcaster.updateBroadcast(updatedIncident, updateCommand.channelId());
+        broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
     }
 
 }
