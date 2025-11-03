@@ -8,8 +8,10 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "slack")
 public class SlackProperties {
-    private String signingSecret;
-    private String botTokenA;
-    private String botTokenB;
-    private String broadcastChannel;
+  private String signingSecret; // legacy single-app support
+  private String signingSecretA;
+  private String signingSecretB;
+  private String botTokenA;
+  private String botTokenB;
+  private String broadcastChannel;
 }

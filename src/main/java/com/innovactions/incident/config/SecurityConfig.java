@@ -9,17 +9,21 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable) // CSRF off
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/slack/events").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(httpBasic -> {
-                });
-        return http.build();
-    }
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf(AbstractHttpConfigurer::disable) // CSRF off
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers(
+                        "/whatsapp/webhook",
+                        "/slack/events",
+                        "/slack/reporter",
+                        "/slack/manager",
+                        "/slack/manager/close_incident")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+        .httpBasic(httpBasic -> {});
+    return http.build();
+  }
 }
-
