@@ -1,6 +1,6 @@
 package com.innovactions.incident.application.command;
 
-import com.innovactions.incident.application.Platform;
+import com.innovactions.incident.domain.model.Platform;
 import lombok.Builder;
 
 import java.time.Instant;

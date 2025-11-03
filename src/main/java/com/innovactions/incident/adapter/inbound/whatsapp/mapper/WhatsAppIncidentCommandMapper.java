@@ -1,7 +1,7 @@
 package com.innovactions.incident.adapter.inbound.whatsapp.mapper;
 
 import com.innovactions.incident.adapter.inbound.whatsapp.WhatsAppPayload;
-import com.innovactions.incident.application.Platform;
+import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import lombok.NoArgsConstructor;
 

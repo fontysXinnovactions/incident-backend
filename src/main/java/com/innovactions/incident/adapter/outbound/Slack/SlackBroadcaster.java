@@ -1,7 +1,7 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
-import com.innovactions.incident.application.Platform;
+import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
