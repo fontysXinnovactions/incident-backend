@@ -43,6 +43,7 @@ public class SlackCreateIncident {
                 cleanText,
                 Instant.now(),
                 Platform.SLACK
+
         );
 
         incidentInboundPort.reportIncident(command);

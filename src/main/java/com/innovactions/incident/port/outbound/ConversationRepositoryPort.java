@@ -7,6 +7,7 @@ import java.util.Optional;
 
 /**
  * Use case: Store conversation
+ * gets existing conversation context of users
  * saves a conversation after the incident is created
  * Updates an ongoing conversation
  */

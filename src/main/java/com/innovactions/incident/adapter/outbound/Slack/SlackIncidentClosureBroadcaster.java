@@ -1,6 +1,6 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
-import com.innovactions.incident.application.Platform;
+import com.innovactions.incident.domain.event.IncidentClosedEvent;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
 import com.slack.api.Slack;
@@ -10,6 +10,7 @@ import com.slack.api.methods.response.conversations.ConversationsKickResponse;
 import com.slack.api.methods.response.conversations.ConversationsMembersResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,11 +21,8 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
     private final String botTokenB;
     private final BotMessagingPort reporterBotMessagingPort;
     private final BotMessagingPort managerBotMessagingPort;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Override
-    public Platform getPlatformName() {
-        return Platform.SLACK;
-    }
 
     public void closeIncident(String developerUserId, String channelId, String reason) {
         try {
@@ -37,9 +35,19 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
             // remove all members from the incident channel
             removeAllMembers(channelId);
 
-            // notify original reporter in workspace A
+            // publish an event which has reporter's information, platform to and closure reason
+            // supports multiplatform notification (currently whatsapp and slack)
             if (reporterInfo != null) {
-                notifyReporter(reporterInfo.reporterId, reason);
+                log.info("Publishing IncidentClosedEvent for reporter {} on platform {}",
+                        reporterInfo.reporterId, reporterInfo.platform);
+
+                eventPublisher.publishEvent(
+                        new IncidentClosedEvent(
+                                reporterInfo.reporterId,
+                                reporterInfo.platform,
+                                reason
+                        )
+                );
             }
 
         } catch (Exception e) {
@@ -47,7 +55,8 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
         }
     }
 
-    private void announceClosure(String channelId, String developerUserId, String reason) {
+
+    private void announceClosure (String channelId, String developerUserId, String reason){
         managerBotMessagingPort.sendMessage(channelId, "✅ Incident closed by <@" + developerUserId + ">. Reason: " + reason);
     }
 
@@ -70,18 +79,16 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
                     return new ReporterInfo(reporterId, platform);
                 }
             }
-            return null;
         } catch (IOException | SlackApiException e) {
-            log.error(
-                    "Error extracting reporter from topic for channel {}: {}", channelId, e.getMessage(), e);
-            return null;
+            log.error("Error extracting reporter from topic for channel {}: {}", channelId, e.getMessage(), e);
         }
+        return null;
     }
 
-    private void removeAllMembers(String channelId) {
-        try {
-            ConversationsMembersResponse membersResponse = Slack.getInstance().methods(botTokenB)
-                    .conversationsMembers(req -> req.channel(channelId));
+        private void removeAllMembers (String channelId) {
+            try {
+                ConversationsMembersResponse membersResponse = Slack.getInstance().methods(botTokenB)
+                        .conversationsMembers(req -> req.channel(channelId));
 
             managerBotMessagingPort.sendMessage(channelId, "Removing all members from channel " + channelId);
 
@@ -90,14 +97,14 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
                 return;
             }
 
-            List<String> members = membersResponse.getMembers();
-            for (String member : members) {
-                try {
-                    ConversationsKickResponse kickResponse = Slack.getInstance().methods(botTokenB)
-                            .conversationsKick(req -> req
-                                    .channel(channelId)
-                                    .user(member)
-                            );
+                List<String> members = membersResponse.getMembers();
+                for (String member : members) {
+                    try {
+                        ConversationsKickResponse kickResponse = Slack.getInstance().methods(botTokenB)
+                                .conversationsKick(req -> req
+                                        .channel(channelId)
+                                        .user(member)
+                                );
 
                     if (!kickResponse.isOk()) {
                         log.warn("Failed to remove member {} from channel {}: {}", member, channelId, kickResponse.getError());
@@ -109,10 +116,12 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
                 }
             }
 
-        } catch (IOException | SlackApiException e) {
-            log.error("Error extracting reporter from topic for channel {}: {}", channelId, e.getMessage(), e);
+            } catch (IOException | SlackApiException e) {
+                log.error(
+                        "Error extracting reporter from topic for channel {}: {}", channelId, e.getMessage(), e);
+
+            }
         }
-    }
 
     private void notifyReporter(String reporterId, String reason) {
         reporterBotMessagingPort.sendMessage(reporterId, "✅ Your reported incident has been closed.\nReason: " + reason);

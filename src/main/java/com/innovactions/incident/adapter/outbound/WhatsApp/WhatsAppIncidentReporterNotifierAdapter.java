@@ -8,8 +8,18 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WhatsAppIncidentClosureBroadcaster implements IncidentReporterNotifierPort {
+public class WhatsAppIncidentReporterNotifierAdapter implements IncidentReporterNotifierPort {
     private final WhatsAppOutboundAdapter whatsAppOutboundAdapter;
+    /**
+     * Notifying incident reporters through WhatsApp
+     * when an incident has been closed.
+     * <p>
+     * Implements the {@link IncidentReporterNotifierPort} to send closure messages
+     * to the reporter using the {@link WhatsAppOutboundAdapter}.
+     * <p>
+     * In this context, the reporter's ID corresponds to the WhatsApp phone number,
+     * which is used as the destination for the notification message.
+     */
 
     @Override
     public void notifyReporter(String reporterId, String reason) {
