@@ -104,3 +104,4 @@ jobs:
           else
             mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
               -Dsonar.projectKey=fontysxinnovactions_incident-backend
+          fi
