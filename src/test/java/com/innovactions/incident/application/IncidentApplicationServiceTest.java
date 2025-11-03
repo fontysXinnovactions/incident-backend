@@ -1,5 +1,7 @@
 package com.innovactions.incident.application;
 
+import static org.mockito.Mockito.*;
+
 import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
@@ -16,142 +18,141 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
-import static org.mockito.Mockito.*;
-
 class IncidentApplicationServiceTest {
 
-    private IncidentService incidentService;
-    private IncidentBroadcasterPort broadcaster;
-    private SeverityClassifierPort classifier;
-    private IncidentClosurePort closurePort;
-    private ConversationContextService contextService;
-    private IncidentApplicationService appService;
+  private IncidentService incidentService;
+  private IncidentBroadcasterPort broadcaster;
+  private SeverityClassifierPort classifier;
+  private IncidentClosurePort closurePort;
+  private ConversationContextService contextService;
+  private IncidentApplicationService appService;
 
-    @BeforeEach
-    void setUp() {
-        incidentService = mock(IncidentService.class);
-        broadcaster = mock(IncidentBroadcasterPort.class);
-        classifier = mock(SeverityClassifierPort.class);
-        closurePort = mock(IncidentClosurePort.class);
-        contextService = mock(ConversationContextService.class);
+  @BeforeEach
+  void setUp() {
+    incidentService = mock(IncidentService.class);
+    broadcaster = mock(IncidentBroadcasterPort.class);
+    classifier = mock(SeverityClassifierPort.class);
+    closurePort = mock(IncidentClosurePort.class);
+    contextService = mock(ConversationContextService.class);
 
-        appService = new IncidentApplicationService(
-                incidentService, broadcaster, classifier, closurePort, contextService
-        );
+    appService =
+        new IncidentApplicationService(
+            incidentService, broadcaster, classifier, closurePort, contextService);
+  }
+
+  @Nested
+  @DisplayName("reportIncident()")
+  class ReportIncidentTests {
+
+    @Test
+    @DisplayName("should create and broadcast new incident when no active context")
+    void shouldCreateAndBroadcastNewIncident() {
+      // Given
+      var command =
+          CreateIncidentCommand.builder()
+              .reporterId("user-1")
+              .reporterName("Alice")
+              .message("Database is down")
+              .platform(Platform.SLACK)
+              .build();
+
+      when(contextService.hasActiveContext(command)).thenReturn(false);
+      when(classifier.classify("Database is down")).thenReturn(Severity.MAJOR);
+
+      var fakeIncident = mock(Incident.class);
+      when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
+      when(broadcaster.initSlackDeveloperWorkspace(fakeIncident, command.platform()))
+          .thenReturn("channel-123");
+
+      // When
+      appService.reportIncident(command);
+
+      // Then
+      InOrder inOrder = inOrder(contextService, classifier, incidentService, broadcaster);
+      inOrder.verify(contextService).hasActiveContext(command);
+      inOrder.verify(classifier).classify("Database is down");
+      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
+      inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
+      inOrder.verify(contextService).saveNewIncident(command, "channel-123");
+      verifyNoMoreInteractions(contextService, classifier, incidentService, broadcaster);
     }
 
-    @Nested
-    @DisplayName("reportIncident()")
-    class ReportIncidentTests {
+    @Test
+    @DisplayName("should delegate to updateExistingIncident() when active context found")
+    void shouldDelegateToUpdateExistingIncident() {
+      // Given
+      var command = mock(CreateIncidentCommand.class);
+      when(contextService.hasActiveContext(command)).thenReturn(true);
 
-        @Test
-        @DisplayName("should create and broadcast new incident when no active context")
-        void shouldCreateAndBroadcastNewIncident() {
-            // Given
-            var command = CreateIncidentCommand.builder()
-                    .reporterId("user-1")
-                    .reporterName("Alice")
-                    .message("Database is down")
-                    .platform(Platform.SLACK)
-                    .build();
+      var spyService = spy(appService);
 
-            when(contextService.hasActiveContext(command)).thenReturn(false);
-            when(classifier.classify("Database is down")).thenReturn(Severity.MAJOR);
+      // When
+      spyService.reportIncident(command);
 
-            var fakeIncident = mock(Incident.class);
-            when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
-            when(broadcaster.initSlackDeveloperWorkspace(fakeIncident, command.platform()))
-                    .thenReturn("channel-123");
+      // Then
+      verify(spyService).updateExistingIncident(command);
+      verifyNoInteractions(classifier, incidentService, broadcaster);
+    }
+  }
 
-            // When
-            appService.reportIncident(command);
+  @Nested
+  @DisplayName("closeIncident()")
+  class CloseIncidentTests {
 
-            // Then
-            InOrder inOrder = inOrder(contextService, classifier, incidentService, broadcaster);
-            inOrder.verify(contextService).hasActiveContext(command);
-            inOrder.verify(classifier).classify("Database is down");
-            inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
-            inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
-            inOrder.verify(contextService).saveNewIncident(command, "channel-123");
-            verifyNoMoreInteractions(contextService, classifier, incidentService, broadcaster);
-        }
+    @Test
+    @DisplayName("should call closure port with correct parameters")
+    void shouldCloseIncident() {
+      // Given
+      var cmd = new CloseIncidentCommand("dev-1", "channel-42", "Resolved manually");
 
-        @Test
-        @DisplayName("should delegate to updateExistingIncident() when active context found")
-        void shouldDelegateToUpdateExistingIncident() {
-            // Given
-            var command = mock(CreateIncidentCommand.class);
-            when(contextService.hasActiveContext(command)).thenReturn(true);
+      // When
+      appService.closeIncident(cmd);
 
-            var spyService = spy(appService);
+      // Then
+      verify(closurePort).closeIncident("dev-1", "channel-42", "Resolved manually");
+      verifyNoMoreInteractions(closurePort);
+    }
+  }
 
-            // When
-            spyService.reportIncident(command);
+  @Nested
+  @DisplayName("updateExistingIncident()")
+  class UpdateIncidentTests {
 
-            // Then
-            verify(spyService).updateExistingIncident(command);
-            verifyNoInteractions(classifier, incidentService, broadcaster);
-        }
+    @Test
+    @DisplayName("should start new flow if no valid update context found")
+    void shouldStartNewFlowIfNoValidUpdateContext() {
+      // Given
+      var createCmd = mock(CreateIncidentCommand.class);
+      when(contextService.findValidUpdateContext(createCmd)).thenReturn(null);
+
+      // When
+      appService.updateExistingIncident(createCmd);
+
+      // Then
+      verify(contextService).findValidUpdateContext(createCmd);
+      verifyNoInteractions(incidentService, broadcaster);
     }
 
-    @Nested
-    @DisplayName("closeIncident()")
-    class CloseIncidentTests {
+    @Test
+    @DisplayName("should update and broadcast when valid update context found")
+    void shouldUpdateAndBroadcast() {
+      // Given
+      var createCmd = mock(CreateIncidentCommand.class);
+      var updateCmd = mock(UpdateIncidentCommand.class);
+      var incident = mock(Incident.class);
 
-        @Test
-        @DisplayName("should call closure port with correct parameters")
-        void shouldCloseIncident() {
-            // Given
-            var cmd = new CloseIncidentCommand("dev-1", "channel-42", "Resolved manually");
+      when(contextService.findValidUpdateContext(createCmd)).thenReturn(updateCmd);
+      when(incidentService.updateIncident(updateCmd)).thenReturn(incident);
+      when(updateCmd.channelId()).thenReturn("channel-99");
 
-            // When
-            appService.closeIncident(cmd);
+      // When
+      appService.updateExistingIncident(createCmd);
 
-            // Then
-            verify(closurePort).closeIncident("dev-1", "channel-42", "Resolved manually");
-            verifyNoMoreInteractions(closurePort);
-        }
+      // Then
+      InOrder inOrder = inOrder(contextService, incidentService, broadcaster);
+      inOrder.verify(contextService).findValidUpdateContext(createCmd);
+      inOrder.verify(incidentService).updateIncident(updateCmd);
+      inOrder.verify(broadcaster).updateIncidentToDeveloper(incident, "channel-99");
     }
-
-    @Nested
-    @DisplayName("updateExistingIncident()")
-    class UpdateIncidentTests {
-
-        @Test
-        @DisplayName("should start new flow if no valid update context found")
-        void shouldStartNewFlowIfNoValidUpdateContext() {
-            // Given
-            var createCmd = mock(CreateIncidentCommand.class);
-            when(contextService.findValidUpdateContext(createCmd)).thenReturn(null);
-
-            // When
-            appService.updateExistingIncident(createCmd);
-
-            // Then
-            verify(contextService).findValidUpdateContext(createCmd);
-            verifyNoInteractions(incidentService, broadcaster);
-        }
-
-        @Test
-        @DisplayName("should update and broadcast when valid update context found")
-        void shouldUpdateAndBroadcast() {
-            // Given
-            var createCmd = mock(CreateIncidentCommand.class);
-            var updateCmd = mock(UpdateIncidentCommand.class);
-            var incident = mock(Incident.class);
-
-            when(contextService.findValidUpdateContext(createCmd)).thenReturn(updateCmd);
-            when(incidentService.updateIncident(updateCmd)).thenReturn(incident);
-            when(updateCmd.channelId()).thenReturn("channel-99");
-
-            // When
-            appService.updateExistingIncident(createCmd);
-
-            // Then
-            InOrder inOrder = inOrder(contextService, incidentService, broadcaster);
-            inOrder.verify(contextService).findValidUpdateContext(createCmd);
-            inOrder.verify(incidentService).updateIncident(updateCmd);
-            inOrder.verify(broadcaster).updateIncidentToDeveloper(incident, "channel-99");
-        }
-    }
+  }
 }
