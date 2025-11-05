@@ -2,11 +2,14 @@ package com.innovactions.incident.application;
 
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
+import com.innovactions.incident.persistence.Entity.IncidentEntity;
+import com.innovactions.incident.persistence.IncidentRepository;
 import com.innovactions.incident.port.outbound.ConversationRepositoryPort;
-import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 @Slf4j
 @Service
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class ConversationContextService {
 
   private final ConversationRepositoryPort conversationRepository;
+  private final IncidentRepository incidentRepository;
 
   /**
    * Finds and updates a valid conversation context for a user.
@@ -21,7 +25,7 @@ public class ConversationContextService {
    * <p>Uses {@link #hasActiveContext(CreateIncidentCommand)} to check if the context Returns an
    * {@link UpdateIncidentCommand} if the context exists and is not expired.
    */
-  public UpdateIncidentCommand findValidUpdateContext(CreateIncidentCommand command) {
+     public UpdateIncidentCommand findValidUpdateContext(CreateIncidentCommand command) {
     var context = conversationRepository.findActiveByUser(command.reporterId());
     if (context.isEmpty()) {
       return null;
@@ -40,11 +44,21 @@ public class ConversationContextService {
     }
     return null;
   }
-
   public void saveNewIncident(CreateIncidentCommand command, String channelId) {
-    conversationRepository.saveNew(
-        command.reporterId(), "INCIDENT-" + command.timestamp(), channelId, command.timestamp());
+      IncidentEntity entity = IncidentEntity.builder()
+//              .reporterId(command.reporterId())
+              .content(command.message())
+              .slackChannelId(channelId)
+              .createdAt(command.timestamp())
+              .build();
+
+      incidentRepository.save(entity);
+      log.info("Incident persisted for reporter {}", command.reporterId());
   }
+//  public void saveNewIncident(CreateIncidentCommand command, String channelId) {
+//    conversationRepository.saveNew(
+//        command.reporterId(), "INCIDENT-" + command.timestamp(), channelId, command.timestamp());
+//  }
 
   /**
    * Checks if the user has an active conversation context. A context is active if it exists and is
@@ -53,6 +67,8 @@ public class ConversationContextService {
   public boolean hasActiveContext(CreateIncidentCommand command) {
     // Find user's active conversation (if any)
     var context = conversationRepository.findActiveByUser(command.reporterId());
+//    var context = incidentRepository.findActiveByReporterId(command.reporterId());
+
     if (context.isEmpty()) {
       log.debug("No active context found for {}", command.reporterId());
       return false;
@@ -63,7 +79,7 @@ public class ConversationContextService {
     boolean expired = command.timestamp().isAfter(ctx.lastMessageAt().plus(Duration.ofHours(24)));
 
     boolean active = !expired;
-    log.debug("Active context for {} → {}", ctx.userId(), active);
+//    log.debug("Active context for {} → {}", ctx.userId(), active);
     return active;
   }
 }
