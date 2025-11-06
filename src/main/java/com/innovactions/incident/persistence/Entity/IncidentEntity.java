@@ -20,10 +20,6 @@ public class IncidentEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_ref", referencedColumnName = "id")
-    private ReporterEntity reporter;
-
     @Column(name = "details")
     private String content;
 
@@ -32,5 +28,9 @@ public class IncidentEntity {
 
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reporter_ref", referencedColumnName = "id")
+    private ReporterEntity reporter;
 
 }

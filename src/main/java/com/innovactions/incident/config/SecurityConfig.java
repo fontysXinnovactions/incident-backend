@@ -15,6 +15,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
+                                "/aes-test",
                         "/whatsapp/webhook",
                         "/slack/events",
                         "/slack/reporter",

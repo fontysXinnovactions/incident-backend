@@ -2,8 +2,11 @@ package com.innovactions.incident.application;
 
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
+import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.persistence.Entity.IncidentEntity;
+import com.innovactions.incident.persistence.Entity.ReporterEntity;
 import com.innovactions.incident.persistence.IncidentRepository;
+import com.innovactions.incident.persistence.ReporterRepository;
 import com.innovactions.incident.port.outbound.ConversationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,8 @@ public class ConversationContextService {
 
   private final ConversationRepositoryPort conversationRepository;
   private final IncidentRepository incidentRepository;
+  private final ReporterRepository reporterRepository;
+  private final EncryptionService encryptionService;
 
   /**
    * Finds and updates a valid conversation context for a user.
@@ -45,14 +50,19 @@ public class ConversationContextService {
     return null;
   }
   public void saveNewIncident(CreateIncidentCommand command, String channelId) {
-      IncidentEntity entity = IncidentEntity.builder()
-//              .reporterId(command.reporterId())
+      ReporterEntity reporterEntity = ReporterEntity.builder()
+              .reporterId(encryptionService.encrypt(command.reporterId()))
+              .build();
+      reporterRepository.save(reporterEntity);
+
+      IncidentEntity incidentEntity = IncidentEntity.builder()
               .content(command.message())
               .slackChannelId(channelId)
               .createdAt(command.timestamp())
+              .reporter(reporterEntity)
               .build();
 
-      incidentRepository.save(entity);
+      incidentRepository.save(incidentEntity);
       log.info("Incident persisted for reporter {}", command.reporterId());
   }
 //  public void saveNewIncident(CreateIncidentCommand command, String channelId) {
