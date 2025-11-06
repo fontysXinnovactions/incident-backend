@@ -47,7 +47,7 @@ jobs:
         with:
           push: true
           tags: ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_APP_NAME }}:${{ github.sha }}
-          file: incident-backend/Dockerfile
+          file: ./Dockerfile
 
       - name: Azure Login
         uses: azure/login@v2
