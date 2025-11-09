@@ -1,6 +1,7 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.domain.event.IncidentClosedEvent;
+import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
 import com.slack.api.Slack;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.ApplicationEventPublisher;
 
 @Slf4j
@@ -21,6 +23,7 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
   private final BotMessagingPort reporterBotMessagingPort;
   private final BotMessagingPort managerBotMessagingPort;
   private final ApplicationEventPublisher eventPublisher;
+  private final EncryptionService encryptionService;
 
   public void closeIncident(String developerUserId, String channelId, String reason) {
     try {
@@ -37,9 +40,10 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
       // supports multiplatform notification (currently whatsapp and slack)
       if (reporterInfo != null) {
         log.info(
-            "Publishing IncidentClosedEvent for reporter {} on platform {}",
-            reporterInfo.reporterId,
-            reporterInfo.platform);
+          "Publishing IncidentClosedEvent for reporter {} on platform {}",
+          reporterInfo.reporterId,
+          reporterInfo.platform
+        );
 
         eventPublisher.publishEvent(
             new IncidentClosedEvent(reporterInfo.reporterId, reporterInfo.platform, reason));
@@ -70,6 +74,13 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
         String[] parts = topic.split("reporterid:")[1].trim().split("_");
         if (parts.length >= 2) {
           String reporterId = parts[0];
+          try {
+            reporterId = encryptionService.decrypt(reporterId);
+          } catch (Exception e) {
+            log.error(
+                "Failed to decrypt reporter ID for channel {}: {}", channelId, e.getMessage(), e);
+            return null;
+          }
           String platform = parts[1];
           return new ReporterInfo(reporterId, platform);
         }
