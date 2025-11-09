@@ -45,7 +45,7 @@ public class SlackReporterFlow {
                 "The app should submit the form without errors.\n\n" +
                 "*Actual Result:*\n" +
                 "An error message is displayed and the form is not submitted." +
-                "\n\nNow it's your turn! provide similar details for your incident."
+                "\n\nNow it's your turn! Provide similar details for your incident."
             );
             return ctx.ack();
         });
