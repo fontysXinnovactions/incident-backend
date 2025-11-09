@@ -102,7 +102,6 @@ public class SlackReporterFlow {
                         incidentInboundPort.reportIncident(command);
                     } catch (Exception e) {
                         // pass
-                        pendingReportState.clearPending(userId);
                     } finally {
                         pendingReportState.clearPending(userId);
                     }
