@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
 /**
- * Service for encrypting and decrypting sensitive data using AES-GCM.
+ * Service for encrypting and decrypting sensitive data using AES/CBC/PKCS5Padding.
  * AES = Advanced Encryption Standard.
  * CBC = Cipher Block Chaining that works on blocks of 16 bytes.
  * PKCS5Padding = Padding scheme to ensure plaintext is a multiple of block size.
