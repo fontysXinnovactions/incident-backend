@@ -2,7 +2,6 @@ package com.innovactions.incident.adapter.inbound.slack;
 
 import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
-import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
