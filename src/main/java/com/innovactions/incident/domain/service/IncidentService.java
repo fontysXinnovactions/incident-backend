@@ -22,22 +22,28 @@ public class IncidentService {
     return incident;
   }
 
-  public Incident updateIncident(UpdateIncidentCommand command) {
-    // TODO: Refactor test only
-    Incident updated =
-        new Incident(
-            command.channelId(), // keep the same ID
-            "ReporterName", // TODO: preserve from original incident
-            command.message(),
-            Severity.MINOR, // TODO: decide whether to reclassify
-            "Bob" // TODO: preserve original assignee
-            );
+    public Incident updateIncident(UpdateIncidentCommand command, CreateIncidentCommand createCommand) {
+        String assignee = assign(command.message());
+
+        Incident updated = new Incident(
+                createCommand.reporterId(),
+                createCommand.reporterName(),
+                command.message(),
+                Severity.MINOR,            // TODO: decide whether to reclassify
+                assignee
+        );
 
     log.info(
         "Updated incident {} with new message at {}", command.channelId(), command.updatedAt());
 
-    return updated;
-  }
+        return updated;
+    }
+
+    // Question by Bob: What is this for?
+    public Incident updateExistingIncident(CreateIncidentCommand updateCommand) {
+        //TODO: Implement logic to find and update the existing incident
+        return null;
+    }
 
   private String assign(String message) {
     return "Bob";

@@ -126,14 +126,10 @@ public class SlackConfig {
     return new SlackCloseIncident(incidentInboundPort);
   }
 
-  @Bean
-  public IncidentBroadcasterPort slackBroadcaster(
-      ChannelNameGenerator channelNameGenerator,
-      BotMessagingPort managerBotMessagingPort,
-      ChannelAdministrationPort channelAdministrationPort) {
-    return new SlackBroadcaster(
-        developerUserId, channelNameGenerator, managerBotMessagingPort, channelAdministrationPort);
-  }
+    @Bean
+    public IncidentBroadcasterPort slackBroadcaster(ChannelNameGenerator channelNameGenerator, BotMessagingPort managerBotMessagingPort, BotMessagingPort reporterBotMessagingPort, ChannelAdministrationPort channelAdministrationPort) {
+        return new SlackBroadcaster(developerUserId, channelNameGenerator, managerBotMessagingPort, reporterBotMessagingPort, channelAdministrationPort);
+    }
 
   @Bean
   public IncidentClosurePort incidentClosureBroadcaster(

@@ -17,17 +17,18 @@ public final class IncidentActionBlocks {
     throw new AssertionError("Utility class should not be instantiated.");
   }
 
-  public static String reporterButtons() {
-    return toJson(
-        List.of(
-            Map.of(
-                "type",
-                "actions",
-                "elements",
-                List.of(
-                    button("🐞 Report a bug", "report_bug", null),
-                    button("📊 Check status", "check_status", null)))));
-  }
+    public static String reporterButtons() {
+        return toJson(List.of(
+                Map.of(
+                    "type", "actions",
+                    "elements", List.of(
+                        button("🐞 Report a bug", "report_bug", null),
+                        button("🔄️ Update incident", "update_incident", null),
+                        button("📊 Check status", "check_status", null)
+                    )
+                )
+        ));
+    }
 
   public static String acknowledgeDismissButtons() {
     return toJson(
