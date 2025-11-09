@@ -123,7 +123,7 @@ public class SlackReporterFlow {
                         incidentInboundPort.updateExistingIncident(updateCommand);
                     } catch (Exception e) {
                         // pass
-                        pendingReportState.clearUpdating(userId);
+                        // removed redundant clearUpdating call
                     } finally {
                         pendingReportState.clearUpdating(userId);
                     }
