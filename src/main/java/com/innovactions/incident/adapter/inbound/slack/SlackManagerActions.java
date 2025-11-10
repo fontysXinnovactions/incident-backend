@@ -1,8 +1,8 @@
 package com.innovactions.incident.adapter.inbound.slack;
 
 import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
-import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter.ReporterInfo;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
+import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.slack.api.bolt.App;
@@ -60,12 +60,13 @@ public class SlackManagerActions {
     managerApp.blockAction(
         "ask_details",
         (req, ctx) -> {
-          String user = req.getPayload().getUser().getId();
           String channel = req.getPayload().getChannel().getId(); 
+          
+          ReporterInfo reporterInfo = channelAdministrationPort.extractReporterIdFromTopic(channel);
 
-          if (user != null) {
-            broadcaster.askUserForMoreInfo(user);
-            managerBotMessagingPort.sendMessage(channel, "We sent a message to the reporter to as for more details about the incident\n\nWe will update you once we receive a response.");
+          if (reporterInfo != null) {
+            broadcaster.askUserForMoreInfo(reporterInfo.reporterId);
+            managerBotMessagingPort.sendMessage(channel, "We sent a message to the reporter to ask for more details about the incident\n\nWe will update you once we receive a response.");
             return ctx.ack();
           } else {
             managerBotMessagingPort.sendMessage(

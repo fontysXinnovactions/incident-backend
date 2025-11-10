@@ -2,6 +2,7 @@ package com.innovactions.incident.adapter.outbound;
 
 import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
+import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.conversations.*;
@@ -137,16 +138,6 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
     } catch (IOException | SlackApiException e) {
       log.error("Error listing members for {}: {}", channelId, e.getMessage(), e);
       return List.of();
-    }
-  }
-
-  public static class ReporterInfo {
-    public final String reporterId;
-    public final String platform;
-
-    public ReporterInfo(String reporterId, String platform) {
-      this.reporterId = reporterId;
-      this.platform = platform;
     }
   }
 }

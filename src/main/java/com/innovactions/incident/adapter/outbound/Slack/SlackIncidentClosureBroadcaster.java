@@ -1,8 +1,7 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
-import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter.ReporterInfo;
 import com.innovactions.incident.domain.event.IncidentClosedEvent;
-import com.innovactions.incident.domain.service.EncryptionService;
+import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
