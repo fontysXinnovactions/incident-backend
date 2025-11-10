@@ -1,4 +1,4 @@
-package com.innovactions.incident.persistence.Entity;
+package com.innovactions.incident.adapter.outbound.persistence.Entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
