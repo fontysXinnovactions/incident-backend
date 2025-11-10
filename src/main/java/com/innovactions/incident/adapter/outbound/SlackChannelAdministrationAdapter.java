@@ -1,5 +1,6 @@
 package com.innovactions.incident.adapter.outbound;
 
+import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
@@ -17,9 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 public class SlackChannelAdministrationAdapter implements ChannelAdministrationPort {
 
   private final String botToken;
+  private final EncryptionService encryptionService;
 
-  public SlackChannelAdministrationAdapter(String botToken) {
+  public SlackChannelAdministrationAdapter(String botToken, EncryptionService encryptionService) {
     this.botToken = botToken;
+    this.encryptionService = encryptionService;
   }
 
   @Override
@@ -54,6 +57,40 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
     } catch (IOException | SlackApiException e) {
       log.error("Error setting topic for {}: {}", channelId, e.getMessage(), e);
     }
+  }
+  
+  @Override
+  public ReporterInfo extractReporterIdFromTopic(String channelId) {
+    try {
+      ConversationsInfoResponse response =
+          Slack.getInstance().methods(botToken).conversationsInfo(req -> req.channel(channelId));
+
+      if (!response.isOk()) {
+        log.error("Failed to get channel info for {}: {}", channelId, response.getError());
+        return null;
+      }
+
+      String topic = response.getChannel().getTopic().getValue();
+      if (topic != null && topic.contains("reporterid:")) {
+        String[] parts = topic.split("reporterid:")[1].trim().split("_");
+        if (parts.length >= 2) {
+          String reporterId = parts[0];
+          try {
+            reporterId = encryptionService.decrypt(reporterId);
+          } catch (Exception e) {
+            log.error(
+                "Failed to decrypt reporter ID for channel {}: {}", channelId, e.getMessage(), e);
+            return null;
+          }
+          String platform = parts[1];
+          return new ReporterInfo(reporterId, platform);
+        }
+      }
+    } catch (IOException | SlackApiException e) {
+      log.error("Error extracting reporter ID from topic for {}: {}", channelId, e.getMessage(), e);
+      return null;
+    }
+    return null;
   }
 
   @Override
@@ -100,6 +137,16 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
     } catch (IOException | SlackApiException e) {
       log.error("Error listing members for {}: {}", channelId, e.getMessage(), e);
       return List.of();
+    }
+  }
+
+  public static class ReporterInfo {
+    public final String reporterId;
+    public final String platform;
+
+    public ReporterInfo(String reporterId, String platform) {
+      this.reporterId = reporterId;
+      this.platform = platform;
     }
   }
 }

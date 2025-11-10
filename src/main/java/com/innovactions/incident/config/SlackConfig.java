@@ -150,14 +150,14 @@ public class SlackConfig {
       BotMessagingPort reporterBotMessagingPort,
       BotMessagingPort managerBotMessagingPort,
       ApplicationEventPublisher eventPublisher,
-      EncryptionService encryptionService
+      ChannelAdministrationPort channelAdministrationPort
   ) {
     return new SlackIncidentClosureBroadcaster(
         botTokenB, 
         reporterBotMessagingPort, 
         managerBotMessagingPort, 
         eventPublisher,
-        encryptionService
+        channelAdministrationPort
     );
   }
 
@@ -169,8 +169,10 @@ public class SlackConfig {
   @Bean
   public SlackManagerActions slackManagerActions(
       ChannelAdministrationPort channelAdministrationPort,
-      BotMessagingPort managerBotMessagingPort) {
-    return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort);
+      BotMessagingPort managerBotMessagingPort,
+      IncidentBroadcasterPort broadcaster
+  ) {
+    return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort, broadcaster);
   }
 
   @Bean
@@ -184,7 +186,7 @@ public class SlackConfig {
   }
 
   @Bean
-  public ChannelAdministrationPort channelAdministrationPort() {
-    return new SlackChannelAdministrationAdapter(botTokenB);
+  public ChannelAdministrationPort channelAdministrationPort(EncryptionService encryptionService) {
+    return new SlackChannelAdministrationAdapter(botTokenB, encryptionService);
   }
 }
