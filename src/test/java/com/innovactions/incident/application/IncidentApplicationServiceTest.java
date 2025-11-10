@@ -142,7 +142,7 @@ class IncidentApplicationServiceTest {
       var incident = mock(Incident.class);
 
       when(contextService.findValidUpdateContext(createCmd)).thenReturn(updateCmd);
-      when(incidentService.updateIncident(updateCmd)).thenReturn(incident);
+      when(incidentService.updateIncident(updateCmd, createCmd)).thenReturn(incident);
       when(updateCmd.channelId()).thenReturn("channel-99");
 
       // When
@@ -151,7 +151,7 @@ class IncidentApplicationServiceTest {
       // Then
       InOrder inOrder = inOrder(contextService, incidentService, broadcaster);
       inOrder.verify(contextService).findValidUpdateContext(createCmd);
-      inOrder.verify(incidentService).updateIncident(updateCmd);
+      inOrder.verify(incidentService).updateIncident(updateCmd, createCmd);
       inOrder.verify(broadcaster).updateIncidentToDeveloper(incident, "channel-99");
     }
   }
