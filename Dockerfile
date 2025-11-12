@@ -23,6 +23,6 @@ WORKDIR /app
 
 COPY --from=build /app/target/incident-0.0.1-SNAPSHOT.jar app.jar
 
-EXPOSE 80
+EXPOSE 8081
 
-ENTRYPOINT ["java", "-Dserver.port=80", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dserver.port=8081", "-jar", "app.jar"]
