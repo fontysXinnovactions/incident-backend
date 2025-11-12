@@ -107,4 +107,17 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
             "⚠️ We couldn't find an active incident to update. Please report a new incident."
         );
     }
+
+    @Override
+    public void askUserForMoreInfo(String reporterId) {
+        reporterBotMessagingPort.sendMessageWithBlocks(
+            reporterId,
+            "👋 Hi! A developer is working on the incident you reported. " +
+                "Could you please provide more details about the issue to help us resolve it faster?\n\n" +
+                "You can reply by clicking the 'Provide Info' button below this chat.\n" +
+                "Please reply with any additional information, or steps to reproduce the problem.\n\n" +
+                "Thank you for your cooperation!",
+            IncidentActionBlocks.askForMoreInfoButtons()
+        );
+    }
 }
