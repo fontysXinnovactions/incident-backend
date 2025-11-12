@@ -34,17 +34,33 @@ public class IncidentApplicationService implements IncidentInboundPort {
    */
   @Override
   public void reportIncident(CreateIncidentCommand command) {
-    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
-    if (hasActiveContext) {
-      updateExistingIncident(command);
-      return;
-    }
-    Severity severity = severityClassifier.classify(command.message());
+      boolean hasActiveContext = conversationContextService.hasActiveContext(command);
+      if (hasActiveContext) {
+          updateExistingIncident(command);
+          return;
+      }
+      Severity severity = severityClassifier.classify(command.message());
 
-    Incident incident = incidentService.createIncident(command, severity);
-    String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-    conversationContextService.saveNewIncident(command, channelId);
+      Incident incident = incidentService.createIncident(command.reporterId(),
+              command.reporterName(),
+              command.message(),
+              severity);
+      String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
+      conversationContextService.saveNewIncident(command, channelId);
   }
+//  @Override
+//  public void reportIncident(CreateIncidentCommand command) {
+//    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
+//    if (hasActiveContext) {
+//      updateExistingIncident(command);
+//      return;
+//    }
+//    Severity severity = severityClassifier.classify(command.message());
+//
+//    Incident incident = incidentService.createIncident(command, severity);
+//    String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
+//    conversationContextService.saveNewIncident(command, channelId);
+//  }
 
   @Override
   public void closeIncident(CloseIncidentCommand command) {

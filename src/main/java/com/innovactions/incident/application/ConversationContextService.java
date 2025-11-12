@@ -1,6 +1,8 @@
 package com.innovactions.incident.application;
 
+import com.innovactions.incident.adapter.outbound.persistence.Entity.MessageEntity;
 import com.innovactions.incident.adapter.outbound.persistence.IncidentJpaRepository;
+import com.innovactions.incident.adapter.outbound.persistence.MessagesJpaRepository;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
@@ -16,9 +18,10 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class ConversationContextService {
 
-
+//FIXME: move everything got to do with jpa to the repository adapter
   private final IncidentJpaRepository incidentJpaRepositoryPort;
   private final IncidentRepositoryPort incidentRepository;
+  private final MessagesJpaRepository messagesJpaRepository;
   /**
    * Finds and updates a valid conversation context for a user.
    *
@@ -32,13 +35,17 @@ public class ConversationContextService {
       if (context.isEmpty()) {
           return null;
       }
-      var ctx = context.get();
+      var incident = context.get();
       if (hasActiveContext(command)) {
 
-          ctx.setContent(command.message());
-          ctx.setCreatedAt(command.timestamp());
-          incidentJpaRepositoryPort.save(ctx);
-          log.info("Updated context for user {}", ctx);
+          MessageEntity messageEntity = MessageEntity.builder()
+                  .incident(incident)
+                  .content(command.message())
+                  .sentAt(command.timestamp())
+                  .build();
+
+          messagesJpaRepository.save(messageEntity);
+          log.info("Updated context for user {}", incident);
 
           return UpdateIncidentCommand.builder()
                   .channelId(context.get().getSlackChannelId())

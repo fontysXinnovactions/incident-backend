@@ -1,6 +1,7 @@
 package com.innovactions.incident.adapter.outbound.persistence;
 
 import com.innovactions.incident.adapter.outbound.persistence.Entity.IncidentEntity;
+import com.innovactions.incident.adapter.outbound.persistence.Entity.MessageEntity;
 import com.innovactions.incident.adapter.outbound.persistence.Entity.ReporterEntity;
 import com.innovactions.incident.adapter.security.EncryptionAdapter;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
@@ -8,6 +9,7 @@ import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +21,10 @@ import java.util.UUID;
 public class IncidentRepositoryAdapter implements IncidentRepositoryPort {
     private final IncidentJpaRepository incidentJpaRepository;
     private final ReporterJpaRepository reporterJpaRepository;
+    private final MessagesJpaRepository messagesJpaRepository;
     private final EncryptionAdapter encryptionAdapter;
 
+    @Transactional
     @Override
     public void saveNewIncident(CreateIncidentCommand command, String channelId) {
         String encryptedReporterId = encryptionAdapter.encrypt(command.reporterId());
@@ -41,6 +45,15 @@ public class IncidentRepositoryAdapter implements IncidentRepositoryPort {
                 .build();
 
         incidentJpaRepository.save(incidentEntity);
+
+        MessageEntity messageEntity = MessageEntity.builder()
+                .incident(incidentEntity)
+                .content(command.message())
+                .sentAt(command.timestamp())
+                .build();
+
+        messagesJpaRepository.save(messageEntity);
+
         log.info("Incident persisted for reporter {}", command.reporterId());
     }
 
