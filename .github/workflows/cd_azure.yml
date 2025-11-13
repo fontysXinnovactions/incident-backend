@@ -59,4 +59,15 @@ jobs:
           imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_APP_NAME }}:${{ github.sha }}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.CONTAINER_APP_NAME }}
-          environmentVariables: ${{ secrets.APP_ENV_VARS }}
+          environmentVariables: |
+            SLACK_SIGNING_SECRET_A=${{ secrets.SLACK_SIGNING_SECRET_A }}
+            SLACK_SIGNING_SECRET_B=${{ secrets.SLACK_SIGNING_SECRET_B }}
+            SLACK_BOT_TOKEN_A=${{ secrets.SLACK_BOT_TOKEN_A }}
+            SLACK_BOT_TOKEN_B=${{ secrets.SLACK_BOT_TOKEN_B }}
+            SLACK_DEVELOPER_USER_ID=${{ secrets.SLACK_DEVELOPER_USER_ID }}
+            BROADCAST_CHANNEL=${{ secrets.BROADCAST_CHANNEL }}
+            GOOGLE_PROJECT_ID=${{ secrets.GOOGLE_PROJECT_ID }}
+            WHATSAPP_API_URL=${{ secrets.WHATSAPP_API_URL }}
+            WHATSAPP_PHONE_NUMBER_ID=${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+            VERIFY_TOKEN=${{ secrets.VERIFY_TOKEN }}
+            WHATSAPP_ACCESS_TOKEN=${{ secrets.WHATSAPP_ACCESS_TOKEN }}
