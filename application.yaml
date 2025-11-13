@@ -19,15 +19,15 @@ spring:
             enabled: true
 
 slack:
-#  signingSecret: ${SLACK_SIGNING_SECRET}
+  signingSecretA: ${SLACK_SIGNING_SECRET_A} 
+  signingSecretB: ${SLACK_SIGNING_SECRET_B}
   botTokenA: ${SLACK_BOT_TOKEN_A}
   botTokenB: ${SLACK_BOT_TOKEN_B}
+  developerUserId: ${SLACK_DEVELOPER_USER_ID}
   broadcastChannel: ${BROADCAST_CHANNEL}
+
 whatsapp:
   verifyToken: ${VERIFY_TOKEN}
   apiUrl: ${WHATSAPP_API_URL}
   accessToken: ${WHATSAPP_ACCESS_TOKEN}
   phoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID}
-
-
-
