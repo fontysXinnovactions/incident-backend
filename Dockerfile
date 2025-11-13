@@ -25,4 +25,4 @@ COPY --from=build /app/target/incident-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 9999
 
-ENTRYPOINT ["java", "-Dserver.port=9999", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=9999"]
