@@ -80,18 +80,28 @@ class IncidentApplicationServiceTest {
     @Test
     @DisplayName("should delegate to updateExistingIncident() when active context found")
     void shouldDelegateToUpdateExistingIncident() {
-      // Given
-      var command = mock(CreateIncidentCommand.class);
-      when(contextService.hasActiveContext(command)).thenReturn(true);
+        // Given
+        var command = mock(CreateIncidentCommand.class);
+        when(command.reporterId()).thenReturn("U12345");
+        when(contextService.hasActiveContext(command)).thenReturn(true);
 
-      var spyService = spy(appService);
+        var updateCmd = mock(UpdateIncidentCommand.class);
+        when(contextService.findValidUpdateContext(command)).thenReturn(updateCmd);
+        when(updateCmd.channelId()).thenReturn("C12345");
 
-      // When
-      spyService.reportIncident(command);
+        var updatedIncident = mock(Incident.class);
+        when(incidentService.updateIncident(updateCmd, command)).thenReturn(updatedIncident);
 
-      // Then
-      verify(spyService).updateExistingIncident(command);
-      verifyNoInteractions(classifier, incidentService, broadcaster);
+        var spyService = spy(appService);
+
+        // When
+        spyService.reportIncident(command);
+
+        // Then
+        verify(spyService).updateExistingIncident(command);
+        verify(incidentService).updateIncident(updateCmd, command);
+        verify(broadcaster).updateIncidentToDeveloper(updatedIncident, "C12345");
+        verifyNoInteractions(classifier);
     }
   }
 
@@ -121,16 +131,18 @@ class IncidentApplicationServiceTest {
     @Test
     @DisplayName("should start new flow if no valid update context found")
     void shouldStartNewFlowIfNoValidUpdateContext() {
-      // Given
-      var createCmd = mock(CreateIncidentCommand.class);
-      when(contextService.findValidUpdateContext(createCmd)).thenReturn(null);
+        // Given
+        var createCmd = mock(CreateIncidentCommand.class);
+        when(createCmd.reporterId()).thenReturn("U12345"); // Add this
+        when(contextService.findValidUpdateContext(createCmd)).thenReturn(null);
 
-      // When
-      appService.updateExistingIncident(createCmd);
+        // When
+        appService.updateExistingIncident(createCmd);
 
-      // Then
-      verify(contextService).findValidUpdateContext(createCmd);
-      verifyNoInteractions(incidentService, broadcaster);
+        // Then
+        verify(contextService).findValidUpdateContext(createCmd);
+        verify(broadcaster).warnUserOfUnlinkedIncident("U12345");
+        verifyNoInteractions(incidentService);
     }
 
     @Test
