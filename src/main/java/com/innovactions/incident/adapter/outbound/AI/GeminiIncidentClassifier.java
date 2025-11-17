@@ -2,6 +2,7 @@ package com.innovactions.incident.adapter.outbound.AI;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
+import com.innovactions.incident.config.GeminiConfig;
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import java.util.Objects;
@@ -10,16 +11,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class GeminiIncidentClassifier implements SeverityClassifierPort {
 
   private final Client client;
 
-  public GeminiIncidentClassifier() {
-    // Reads GEMINI_API_KEY from environment variable
-    this.client = new Client();
-  }
+    public GeminiIncidentClassifier(String apiKey) {
+        this.client = Client.builder()
+                .apiKey(apiKey)
+                .build();
+    }
 
   @Override
   public Severity classify(String message) {

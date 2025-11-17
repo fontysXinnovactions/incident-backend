@@ -1,6 +1,9 @@
 package com.innovactions.incident.config;
 
-import com.innovactions.incident.adapter.inbound.slack.*;
+import com.innovactions.incident.adapter.inbound.slack.SlackCloseIncident;
+import com.innovactions.incident.adapter.inbound.slack.SlackCreateIncident;
+import com.innovactions.incident.adapter.inbound.slack.SlackManagerActions;
+import com.innovactions.incident.adapter.inbound.slack.SlackReporterFlow;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentReporterNotifierAdapter;
@@ -14,179 +17,184 @@ import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
 import com.slack.api.bolt.jakarta_servlet.SlackAppServlet;
 import jakarta.servlet.Servlet;
-import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.concurrent.CompletableFuture;
+
 @Configuration
 public class SlackConfig {
+    private final String signingSecretA;
+    private final String signingSecretB;
+    private final String botTokenA;
+    private final String botTokenB;
+    private final String developerUserId;
 
-  @Value("${slack.signingSecretA}")
-  private String signingSecretA;
+    public SlackConfig(
+            @Value("${slack.signingSecretA}") String signingSecretA,
+            @Value("${slack.signingSecretB}") String signingSecretB,
+            @Value("${slack.botTokenA}") String botTokenA,
+            @Value("${slack.botTokenB}") String botTokenB,
+            @Value("${slack.developerUserId}") String developerUserId
+    ) {
+        this.signingSecretA = signingSecretA;
+        this.signingSecretB = signingSecretB;
+        this.botTokenA = botTokenA;
+        this.botTokenB = botTokenB;
+        this.developerUserId = developerUserId;
+    }
 
-  @Value("${slack.signingSecretB}")
-  private String signingSecretB;
+    /* ─────────────────────────────────────
+    Reporter (Bot A)
+    ───────────────────────────────────── */
+    @Bean
+    public App reporterSlackApp(
+            SlackCreateIncident slackCreateIncident, SlackReporterFlow slackReporterFlow) {
 
-  @Value("${slack.botTokenA}")
-  private String botTokenA;
+        var config =
+                AppConfig.builder().signingSecret(signingSecretA).singleTeamBotToken(botTokenA).build();
 
-  @Value("${slack.botTokenB}")
-  private String botTokenB;
+        var app = new App(config);
 
-  @Value("${slack.developerUserId}")
-  private String developerUserId;
+        app.event(
+                com.slack.api.model.event.AppMentionEvent.class,
+                (payload, ctx) -> {
+                    ctx.ack(); // ack immediately
+                    CompletableFuture.runAsync(
+                            () -> {
+                                try {
+                                    slackCreateIncident.handle(payload.getEvent(), ctx);
+                                    ctx.say("Incident noted! Thanks, we’ll look into it.");
+                                } catch (Exception e) {
+                                    // log or ignore
+                                }
+                            });
+                    return ctx.ack();
+                });
 
-  /* ─────────────────────────────────────
-  Reporter (Bot A)
-  ───────────────────────────────────── */
-  @Bean
-  public App reporterSlackApp(
-      SlackCreateIncident slackCreateIncident, SlackReporterFlow slackReporterFlow) {
+        slackReporterFlow.register(app);
+        return app;
+    }
 
-    var config =
-        AppConfig.builder().signingSecret(signingSecretA).singleTeamBotToken(botTokenA).build();
+    /* ─────────────────────────────────────
+    Manager (Bot B)
+    ───────────────────────────────────── */
+    @Bean
+    public App managerSlackApp(
+            SlackCloseIncident slackCloseIncident, SlackManagerActions slackManagerActions) {
 
-    var app = new App(config);
+        var config =
+                AppConfig.builder().signingSecret(signingSecretB).singleTeamBotToken(botTokenB).build();
 
-    app.event(
-        com.slack.api.model.event.AppMentionEvent.class,
-        (payload, ctx) -> {
-          ctx.ack(); // ack immediately
-          CompletableFuture.runAsync(
-              () -> {
-                try {
-                  slackCreateIncident.handle(payload.getEvent(), ctx);
-                  ctx.say("Incident noted! Thanks, we’ll look into it.");
-                } catch (Exception e) {
-                  // log or ignore
-                }
-              });
-          return ctx.ack();
-        });
+        var app = new App(config);
 
-    slackReporterFlow.register(app);
-    return app;
-  }
+        app.command(
+                "/close_incident",
+                (req, ctx) -> {
+                    CompletableFuture.runAsync(
+                            () -> {
+                                try {
+                                    slackCloseIncident.handle(req, ctx);
+                                } catch (Exception e) {
+                                    // log or ignore
+                                }
+                            });
+                    return ctx.ack("Processing incident closure...");
+                });
 
-  /* ─────────────────────────────────────
-  Manager (Bot B)
-  ───────────────────────────────────── */
-  @Bean
-  public App managerSlackApp(
-      SlackCloseIncident slackCloseIncident, SlackManagerActions slackManagerActions) {
+        slackManagerActions.register(app);
+        return app;
+    }
 
-    var config =
-        AppConfig.builder().signingSecret(signingSecretB).singleTeamBotToken(botTokenB).build();
+    /* ─────────────────────────────────────
+    Servlet registrations
+    ───────────────────────────────────── */
+    @Bean
+    public ServletRegistrationBean<Servlet> reporterServlet(App reporterSlackApp) {
+        return new ServletRegistrationBean<>(new SlackAppServlet(reporterSlackApp), "/slack/reporter");
+    }
 
-    var app = new App(config);
+    @Bean
+    public ServletRegistrationBean<Servlet> managerServlet(App managerSlackApp) {
+        return new ServletRegistrationBean<>(new SlackAppServlet(managerSlackApp), "/slack/manager");
+    }
 
-    app.command(
-        "/close_incident",
-        (req, ctx) -> {
-          CompletableFuture.runAsync(
-              () -> {
-                try {
-                  slackCloseIncident.handle(req, ctx);
-                } catch (Exception e) {
-                  // log or ignore
-                }
-              });
-          return ctx.ack("Processing incident closure...");
-        });
+    /* ─────────────────────────────────────
+    Adapters and ports
+    ───────────────────────────────────── */
+    @Bean
+    public SlackCreateIncident slackCreateIncident(IncidentInboundPort incidentInboundPort) {
+        return new SlackCreateIncident(incidentInboundPort);
+    }
 
-    slackManagerActions.register(app);
-    return app;
-  }
-
-  /* ─────────────────────────────────────
-  Servlet registrations
-  ───────────────────────────────────── */
-  @Bean
-  public ServletRegistrationBean<Servlet> reporterServlet(App reporterSlackApp) {
-    return new ServletRegistrationBean<>(new SlackAppServlet(reporterSlackApp), "/slack/reporter");
-  }
-
-  @Bean
-  public ServletRegistrationBean<Servlet> managerServlet(App managerSlackApp) {
-    return new ServletRegistrationBean<>(new SlackAppServlet(managerSlackApp), "/slack/manager");
-  }
-
-  /* ─────────────────────────────────────
-  Adapters and ports
-  ───────────────────────────────────── */
-  @Bean
-  public SlackCreateIncident slackCreateIncident(IncidentInboundPort incidentInboundPort) {
-    return new SlackCreateIncident(incidentInboundPort);
-  }
-
-  @Bean
-  public SlackCloseIncident slackCloseIncident(IncidentInboundPort incidentInboundPort) {
-    return new SlackCloseIncident(incidentInboundPort);
-  }
+    @Bean
+    public SlackCloseIncident slackCloseIncident(IncidentInboundPort incidentInboundPort) {
+        return new SlackCloseIncident(incidentInboundPort);
+    }
 
     @Bean
     public IncidentBroadcasterPort slackBroadcaster(
-      ChannelNameGenerator channelNameGenerator, 
-      BotMessagingPort managerBotMessagingPort, 
-      BotMessagingPort reporterBotMessagingPort, 
-      ChannelAdministrationPort channelAdministrationPort,
-      EncryptionService encryptionService
-      ) {
+            ChannelNameGenerator channelNameGenerator,
+            BotMessagingPort managerBotMessagingPort,
+            BotMessagingPort reporterBotMessagingPort,
+            ChannelAdministrationPort channelAdministrationPort,
+            EncryptionService encryptionService
+    ) {
         return new SlackBroadcaster(
-          developerUserId, 
-          channelNameGenerator, 
-          managerBotMessagingPort, 
-          reporterBotMessagingPort, 
-          channelAdministrationPort,
-          encryptionService
+                developerUserId,
+                channelNameGenerator,
+                managerBotMessagingPort,
+                reporterBotMessagingPort,
+                channelAdministrationPort,
+                encryptionService
         );
     }
 
-  @Bean
-  public IncidentClosurePort incidentClosureBroadcaster(
-      BotMessagingPort reporterBotMessagingPort,
-      BotMessagingPort managerBotMessagingPort,
-      ApplicationEventPublisher eventPublisher,
-      ChannelAdministrationPort channelAdministrationPort
-  ) {
-    return new SlackIncidentClosureBroadcaster(
-        botTokenB, 
-        reporterBotMessagingPort, 
-        managerBotMessagingPort, 
-        eventPublisher,
-        channelAdministrationPort
-    );
-  }
+    @Bean
+    public IncidentClosurePort incidentClosureBroadcaster(
+            BotMessagingPort reporterBotMessagingPort,
+            BotMessagingPort managerBotMessagingPort,
+            ApplicationEventPublisher eventPublisher,
+            ChannelAdministrationPort channelAdministrationPort
+    ) {
+        return new SlackIncidentClosureBroadcaster(
+                botTokenB,
+                reporterBotMessagingPort,
+                managerBotMessagingPort,
+                eventPublisher,
+                channelAdministrationPort
+        );
+    }
 
-  @Bean
-  public IncidentReporterNotifierPort slackIncidentReporterNotifierAdapter(BotMessagingPort reporterBotMessagingPort) {
-    return new SlackIncidentReporterNotifierAdapter(reporterBotMessagingPort);
-  }
+    @Bean
+    public IncidentReporterNotifierPort slackIncidentReporterNotifierAdapter(BotMessagingPort reporterBotMessagingPort) {
+        return new SlackIncidentReporterNotifierAdapter(reporterBotMessagingPort);
+    }
 
-  @Bean
-  public SlackManagerActions slackManagerActions(
-      ChannelAdministrationPort channelAdministrationPort,
-      BotMessagingPort managerBotMessagingPort,
-      IncidentBroadcasterPort broadcaster
-  ) {
-    return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort, broadcaster);
-  }
+    @Bean
+    public SlackManagerActions slackManagerActions(
+            ChannelAdministrationPort channelAdministrationPort,
+            BotMessagingPort managerBotMessagingPort,
+            IncidentBroadcasterPort broadcaster
+    ) {
+        return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort, broadcaster);
+    }
 
-  @Bean
-  public BotMessagingPort reporterBotMessagingPort() {
-    return new SlackBotMessagingAdapter(botTokenA);
-  }
+    @Bean
+    public BotMessagingPort reporterBotMessagingPort() {
+        return new SlackBotMessagingAdapter(botTokenA);
+    }
 
-  @Bean
-  public BotMessagingPort managerBotMessagingPort() {
-    return new SlackBotMessagingAdapter(botTokenB);
-  }
+    @Bean
+    public BotMessagingPort managerBotMessagingPort() {
+        return new SlackBotMessagingAdapter(botTokenB);
+    }
 
-  @Bean
-  public ChannelAdministrationPort channelAdministrationPort(EncryptionService encryptionService) {
-    return new SlackChannelAdministrationAdapter(botTokenB, encryptionService);
-  }
+    @Bean
+    public ChannelAdministrationPort channelAdministrationPort(EncryptionService encryptionService) {
+        return new SlackChannelAdministrationAdapter(botTokenB, encryptionService);
+    }
 }
