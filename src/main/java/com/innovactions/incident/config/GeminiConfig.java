@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class GeminiConfig {
-    @Bean
-    public SeverityClassifierPort geminiIncidentClassifier(
-            @Value("${gemini.api.key}") String apiKey) {
-        return new GeminiIncidentClassifier(apiKey);
-    }
+  @Bean
+  public SeverityClassifierPort geminiIncidentClassifier(
+      @Value("${gemini.api.key}") String apiKey) {
+    return new GeminiIncidentClassifier(apiKey);
+  }
 }

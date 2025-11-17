@@ -113,7 +113,7 @@ class IncidentServiceTest {
               .message("Updated details")
               .updatedAt(Instant.now())
               .build();
-      
+
       var createCmd =
           CreateIncidentCommand.builder()
               .reporterId("rep-123")
@@ -148,7 +148,7 @@ class IncidentServiceTest {
               .timestamp(Instant.now())
               .platform(Platform.SLACK)
               .build();
-      
+
       // When, Then
       assertThatThrownBy(() -> service.updateIncident(null, createCmd))
           .isInstanceOf(NullPointerException.class);
@@ -160,7 +160,7 @@ class IncidentServiceTest {
       // Given
       var updateCmd =
           UpdateIncidentCommand.builder().channelId("INC-99").message(null).updatedAt(null).build();
-      
+
       var createCmd =
           CreateIncidentCommand.builder()
               .reporterId("rep-123")
@@ -174,7 +174,7 @@ class IncidentServiceTest {
       assertThatThrownBy(() -> service.updateIncident(updateCmd, createCmd))
           .isInstanceOf(NullPointerException.class);
     }
-    
+
     @Test
     @DisplayName("should throw NullPointerException when create command is null")
     void shouldThrowWhenCreateCommandNull() {

@@ -5,11 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Utility class for generating Slack action block JSON strings for incident
- * management.
+ * Utility class for generating Slack action block JSON strings for incident management.
  *
- * <p>
- * Includes methods to create buttons for both the reporter and manager bots.
+ * <p>Includes methods to create buttons for both the reporter and manager bots.
  */
 public final class IncidentActionBlocks {
 
@@ -20,13 +18,16 @@ public final class IncidentActionBlocks {
   }
 
   public static String reporterButtons() {
-    return toJson(List.of(
-        Map.of(
-            "type", "actions",
-            "elements", List.of(
-                button("🐞 Report a bug", "report_bug", null),
-                button("🔄️ Update incident", "update_incident", null),
-                button("📊 Check status", "check_status", null)))));
+    return toJson(
+        List.of(
+            Map.of(
+                "type",
+                "actions",
+                "elements",
+                List.of(
+                    button("🐞 Report a bug", "report_bug", null),
+                    button("🔄️ Update incident", "update_incident", null),
+                    button("📊 Check status", "check_status", null)))));
   }
 
   public static String askForMoreInfoButtons() {
