@@ -19,7 +19,8 @@ public class SecurityConfig {
                             "/slack/events", 
                             "/slack/reporter", 
                             "/slack/manager", 
-                            "/slack/manager/close_incident"
+                            "/slack/manager/close_incident",
+                                "/webhook/email"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

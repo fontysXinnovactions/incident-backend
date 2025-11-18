@@ -29,5 +29,8 @@ whatsapp:
   accessToken: ${WHATSAPP_ACCESS_TOKEN}
   phoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID}
 
+graph:
+  client-id: 0e03e33a-e05a-47fb-b6ac-3c1371441df6
+
 
 
