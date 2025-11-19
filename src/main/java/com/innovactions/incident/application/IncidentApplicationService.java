@@ -42,26 +42,10 @@ public class IncidentApplicationService implements IncidentInboundPort {
     }
     Severity severity = severityClassifier.classify(command.message());
 
-    Incident incident =
-        incidentService.createIncident(
-            command.reporterId(), command.reporterName(), command.message(), severity);
+    Incident incident = incidentService.createIncident(command, severity);
     String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
     conversationContextService.saveNewIncident(command, channelId);
   }
-
-  //  @Override
-  //  public void reportIncident(CreateIncidentCommand command) {
-  //    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
-  //    if (hasActiveContext) {
-  //      updateExistingIncident(command);
-  //      return;
-  //    }
-  //    Severity severity = severityClassifier.classify(command.message());
-  //
-  //    Incident incident = incidentService.createIncident(command, severity);
-  //    String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-  //    conversationContextService.saveNewIncident(command, channelId);
-  //  }
 
   @Override
   public void closeIncident(CloseIncidentCommand command) {
@@ -70,10 +54,11 @@ public class IncidentApplicationService implements IncidentInboundPort {
     String channelId = command.channelId();
     String reason = command.reason();
 
-    // 1️⃣ Close the Slack channel (always done)
-    incidentClosurePort.closeIncident(developerId, channelId, reason);
-    log.info("Closure... reporter '{}' via {}", developerId, channelId);
-  }
+        // 1️⃣ Close the Slack channel (always done)
+        incidentClosurePort.closeIncident(developerId, channelId, reason);
+        log.info("Closure... reporter '{}' via {}", developerId, channelId);
+
+    }
 
   /**
    * Use-case: Interpret messages from a conversation and determine if a message is an incident or
@@ -87,47 +72,15 @@ public class IncidentApplicationService implements IncidentInboundPort {
     UpdateIncidentCommand updateCommand =
         conversationContextService.findValidUpdateContext(command);
 
-    // If it's not an update return
-    if (updateCommand == null) {
-      log.info(
-          "No valid update context found for reporter {} — starting new incident flow.",
-          command.reporterId());
-      return;
+        // If it's not an update return
+        if (updateCommand == null) {
+            broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
+            log.info("No valid update context found for reporter {} — starting new incident flow.",
+                    command.reporterId());
+            return;
+        }
+        // If it's an update, update context and send it to the existing channel
+        Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
+        broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
     }
-      log.info("Processing follow-up message for existing incident.");
-      // 2️⃣ Load the IncidentEntity again so we can send it to the developer channel
-      var incidentEntityOpt = incidentRepository.findById(command.reporterId());
-      if (incidentEntityOpt.isEmpty()) {
-          log.error("Incident not found for reporter={} when broadcasting follow-up.",
-                  command.reporterId());
-          return;
-      }
-
-      var entity = incidentEntityOpt.get();
-//FIXME: This is just for testing
-      // 3️⃣ Create a *minimal* Incident domain object for broadcasting
-      Incident incident = new Incident(
-              entity.getReporter().getReporterId(),
-              entity.getReporter().toString(),
-              entity.getSummary(),
-              Severity.MAJOR,
-//              Severity.valueOf(entity.getSeverity()),
-              "Assignee"
-      );
-
-      // 4️⃣ Broadcast to Slack/MS Teams/etc.
-      broadcaster.updateIncidentToDeveloper(
-              incident,
-              updateCommand.channelId()
-      );
-//      Incident updatedIncident = incidentService.updateIncident(updateCommand);
-//      broadcaster.updateIncidentToDeveloper(
-//              updateCommand.message(),
-//              updateCommand.channelId()
-//      );
-    //FIXME:
-    // If it's an update, update context and send it to the existing channel
-
-//    broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
-  }
 }

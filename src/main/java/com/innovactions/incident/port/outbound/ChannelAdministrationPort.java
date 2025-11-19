@@ -11,6 +11,8 @@ public interface ChannelAdministrationPort {
 
   void setChannelTopic(String channelId, String topic);
 
+  ReporterInfo extractReporterIdFromTopic(String channelId);
+
   void inviteUsers(String channelId, List<String> userIds);
 
   void kickUserFromChannel(String channelId, String userId);

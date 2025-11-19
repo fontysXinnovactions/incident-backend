@@ -38,18 +38,18 @@ class IncidentServiceTest {
               .timestamp(Instant.now())
               .platform(Platform.SLACK)
               .build();
-//FIXME:
-//      // When
-//      Incident result = service.createIncident(cmd, Severity.MAJOR);
-//
-//      // Then
-//      assertThat(result).isNotNull();
-//      assertThat(result.getReporterId()).isEqualTo("rep-123");
-//      assertThat(result.getReporterName()).isEqualTo("Alice");
-//      assertThat(result.getDetails()).isEqualTo("Database outage");
-//      assertThat(result.getSeverity()).isEqualTo(Severity.MAJOR);
-//      assertThat(result.getAssignee()).isEqualTo("Bob");
-//      assertThat(result.getId()).isNotNull(); // UUID auto-generated
+
+      // When
+      Incident result = service.createIncident(cmd, Severity.MAJOR);
+
+      // Then
+      assertThat(result).isNotNull();
+      assertThat(result.getReporterId()).isEqualTo("rep-123");
+      assertThat(result.getReporterName()).isEqualTo("Alice");
+      assertThat(result.getDetails()).isEqualTo("Database outage");
+      assertThat(result.getSeverity()).isEqualTo(Severity.MAJOR);
+      assertThat(result.getAssignee()).isEqualTo("Bob");
+      assertThat(result.getId()).isNotNull(); // UUID auto-generated
     }
 
     @Test
@@ -89,13 +89,13 @@ class IncidentServiceTest {
               .timestamp(Instant.now())
               .platform(Platform.WHATSAPP)
               .build();
-//FIXME:
+
       // When
-//      Incident result = service.createIncident(cmd, Severity.MINOR);
-//
-//      // Then
-//      assertThat(result).isNotNull();
-//      assertThat(result.getDetails()).isEqualTo(" ");
+      Incident result = service.createIncident(cmd, Severity.MINOR);
+
+      // Then
+      assertThat(result).isNotNull();
+      assertThat(result.getDetails()).isEqualTo(" ");
     }
   }
 
@@ -107,43 +107,88 @@ class IncidentServiceTest {
     @DisplayName("should create an updated Incident with a generated UUID id")
     void shouldUpdateIncident() {
       // Given
-      var cmd =
+      var updateCmd =
           UpdateIncidentCommand.builder()
               .channelId("INC-42")
               .message("Updated details")
               .updatedAt(Instant.now())
               .build();
-//FIXME:
-//      // When
-//      Incident updated = service.updateIncident(cmd);
-//
-//      // Then
-//      assertThat(updated).isNotNull();
-//      assertThat(updated.getId()).isInstanceOf(java.util.UUID.class);
-//      assertThat(updated.getReporterName()).isEqualTo("ReporterName");
-//      assertThat(updated.getSeverity()).isEqualTo(Severity.MINOR);
-//      assertThat(updated.getAssignee()).isEqualTo("Bob");
-//      assertThat(updated.getDetails()).isEqualTo("Updated details");
+
+      var createCmd =
+          CreateIncidentCommand.builder()
+              .reporterId("rep-123")
+              .reporterName("Alice")
+              .message("Original message")
+              .timestamp(Instant.now())
+              .platform(Platform.SLACK)
+              .build();
+
+      // When
+      Incident updated = service.updateIncident(updateCmd, createCmd);
+
+      // Then
+      assertThat(updated).isNotNull();
+      assertThat(updated.getId()).isInstanceOf(java.util.UUID.class);
+      assertThat(updated.getReporterId()).isEqualTo("rep-123");
+      assertThat(updated.getReporterName()).isEqualTo("Alice");
+      assertThat(updated.getSeverity()).isEqualTo(Severity.MINOR);
+      assertThat(updated.getAssignee()).isEqualTo("Bob");
+      assertThat(updated.getDetails()).isEqualTo("Updated details");
     }
 
     @Test
-    @DisplayName("should throw NullPointerException when command is null")
+    @DisplayName("should throw NullPointerException when update command is null")
     void shouldThrowWhenUpdateCommandNull() {
-        //FIXME:
-//      assertThatThrownBy(() -> service.updateIncident(null))
-//          .isInstanceOf(NullPointerException.class);
+      // Given
+      var createCmd =
+          CreateIncidentCommand.builder()
+              .reporterId("rep-123")
+              .reporterName("Alice")
+              .message("Original message")
+              .timestamp(Instant.now())
+              .platform(Platform.SLACK)
+              .build();
+
+      // When, Then
+      assertThatThrownBy(() -> service.updateIncident(null, createCmd))
+          .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     @DisplayName("should throw NullPointerException when message is null")
     void shouldThrowWhenNullFields() {
       // Given
-      var cmd =
+      var updateCmd =
           UpdateIncidentCommand.builder().channelId("INC-99").message(null).updatedAt(null).build();
-//FIXME:
+
+      var createCmd =
+          CreateIncidentCommand.builder()
+              .reporterId("rep-123")
+              .reporterName("Alice")
+              .message("Original message")
+              .timestamp(Instant.now())
+              .platform(Platform.SLACK)
+              .build();
+
       // When, Then
-//      assertThatThrownBy(() -> service.updateIncident(cmd))
-//          .isInstanceOf(NullPointerException.class);
+      assertThatThrownBy(() -> service.updateIncident(updateCmd, createCmd))
+          .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("should throw NullPointerException when create command is null")
+    void shouldThrowWhenCreateCommandNull() {
+      // Given
+      var updateCmd =
+          UpdateIncidentCommand.builder()
+              .channelId("INC-99")
+              .message("Updated message")
+              .updatedAt(Instant.now())
+              .build();
+
+      // When, Then
+      assertThatThrownBy(() -> service.updateIncident(updateCmd, null))
+          .isInstanceOf(NullPointerException.class);
     }
   }
 }

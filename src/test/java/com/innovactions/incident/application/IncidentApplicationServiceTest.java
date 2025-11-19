@@ -60,8 +60,7 @@ class IncidentApplicationServiceTest {
       when(classifier.classify("Database is down")).thenReturn(Severity.MAJOR);
 
       var fakeIncident = mock(Incident.class);
-      //FIXME:
-//      when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
+      when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
       when(broadcaster.initSlackDeveloperWorkspace(fakeIncident, command.platform()))
           .thenReturn("channel-123");
 
@@ -72,8 +71,7 @@ class IncidentApplicationServiceTest {
       InOrder inOrder = inOrder(contextService, classifier, incidentService, broadcaster);
       inOrder.verify(contextService).hasActiveContext(command);
       inOrder.verify(classifier).classify("Database is down");
-        //FIXME:
-//      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
+      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
       inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
       inOrder.verify(contextService).saveNewIncident(command, "channel-123");
       verifyNoMoreInteractions(contextService, classifier, incidentService, broadcaster);
@@ -144,8 +142,7 @@ class IncidentApplicationServiceTest {
       var incident = mock(Incident.class);
 
       when(contextService.findValidUpdateContext(createCmd)).thenReturn(updateCmd);
-      //FIXME:
-//      when(incidentService.updateIncident(updateCmd)).thenReturn(incident);
+      when(incidentService.updateIncident(updateCmd, createCmd)).thenReturn(incident);
       when(updateCmd.channelId()).thenReturn("channel-99");
 
       // When
@@ -153,8 +150,8 @@ class IncidentApplicationServiceTest {
 
       // Then
       InOrder inOrder = inOrder(contextService, incidentService, broadcaster);
-      inOrder.verify(contextService).findValidUpdateContext(createCmd);//FIXME:
-//      inOrder.verify(incidentService).updateIncident(updateCmd);
+      inOrder.verify(contextService).findValidUpdateContext(createCmd);
+      inOrder.verify(incidentService).updateIncident(updateCmd, createCmd);
       inOrder.verify(broadcaster).updateIncidentToDeveloper(incident, "channel-99");
     }
   }
