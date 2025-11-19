@@ -7,21 +7,21 @@ import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConversationContextService {
 
-//FIXME: move everything got to do with jpa to the repository adapter
+  // FIXME: move everything got to do with jpa to the repository adapter
   private final IncidentJpaRepository incidentJpaRepositoryPort;
   private final IncidentRepositoryPort incidentRepository;
   private final MessagesJpaRepository messagesJpaRepository;
+
   /**
    * Finds and updates a valid conversation context for a user.
    *
@@ -31,33 +31,35 @@ public class ConversationContextService {
   @Transactional
   public UpdateIncidentCommand findValidUpdateContext(CreateIncidentCommand command) {
 
-      var context = incidentRepository.findById(command.reporterId());
-      if (context.isEmpty()) {
-          return null;
-      }
-      var incident = context.get();
-      if (hasActiveContext(command)) {
-
-          MessageEntity messageEntity = MessageEntity.builder()
-                  .incident(incident)
-                  .content(command.message())
-                  .sentAt(command.timestamp())
-                  .build();
-
-          messagesJpaRepository.save(messageEntity);
-          log.info("Updated context for user {}", incident);
-
-          return UpdateIncidentCommand.builder()
-                  .channelId(context.get().getSlackChannelId())
-                  .message(command.message())
-                  .updatedAt(command.timestamp())
-                  .build();
-      }
+    var context = incidentRepository.findById(command.reporterId());
+    if (context.isEmpty()) {
       return null;
+    }
+    var incident = context.get();
+    if (hasActiveContext(command)) {
+
+      MessageEntity messageEntity =
+          MessageEntity.builder()
+              .incident(incident)
+              .content(command.message())
+              .sentAt(command.timestamp())
+              .build();
+
+      messagesJpaRepository.save(messageEntity);
+      log.info("Updated context for user {}", incident);
+
+      return UpdateIncidentCommand.builder()
+          .channelId(context.get().getSlackChannelId())
+          .message(command.message())
+          .updatedAt(command.timestamp())
+          .build();
+    }
+    return null;
   }
-//FIXME: decide the purpose of this method otherwise remove
+
+  // FIXME: decide the purpose of this method otherwise remove
   public void saveNewIncident(CreateIncidentCommand command, String channelId) {
-      incidentRepository.saveNewIncident(command, channelId);
+    incidentRepository.saveNewIncident(command, channelId);
   }
 
   /**

@@ -46,7 +46,7 @@ public class Incident {
   }
 
   public void updateDetails(String newDetails) {
-    this.details = newDetails;
+     this.details = newDetails;
   }
 
   public String summary() {

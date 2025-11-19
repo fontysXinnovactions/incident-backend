@@ -1,24 +1,27 @@
 package com.innovactions.incident.adapter.outbound.persistence.Entity;
 
 import jakarta.persistence.*;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
-@Table(name = "reporters")
+@Table(name = "developers")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReporterEntity {
+public class DeveloperEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
+    @Column(name = "name")
+    private String name;
 
-  @Column(name = "reporter_id", unique = true, nullable = false)
-  private String reporterId;
+    @Column(name = "slack_id")
+    private String slackId;
 }

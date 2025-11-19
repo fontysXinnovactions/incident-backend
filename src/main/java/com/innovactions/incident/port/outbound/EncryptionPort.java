@@ -1,7 +1,7 @@
 package com.innovactions.incident.port.outbound;
 
 public interface EncryptionPort {
-    String encrypt(String plainText);
+  String encrypt(String plainText);
 
-    String decrypt(String encryptedText);
+  String decrypt(String encryptedText);
 }

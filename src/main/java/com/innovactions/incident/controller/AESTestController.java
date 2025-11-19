@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/aes-test")
 @RequiredArgsConstructor
 public class AESTestController {
-    private final EncryptionAdapter encryptionAdapter;
+  private final EncryptionAdapter encryptionAdapter;
 
-    @GetMapping("/aes")
-    public String testEncryption() throws Exception {
-        String phone = "+14155552671";
-        String encrypted = encryptionAdapter.encrypt(phone);
-        String decrypted = encryptionAdapter.decrypt(encrypted);
-        return "Original: " + phone + "\nEncrypted: " + encrypted + "\nDecrypted: " + decrypted;
-    }
+  @GetMapping("/aes")
+  public String testEncryption() throws Exception {
+    String phone = "+14155552671";
+    String encrypted = encryptionAdapter.encrypt(phone);
+    String decrypted = encryptionAdapter.decrypt(encrypted);
+    return "Original: " + phone + "\nEncrypted: " + encrypted + "\nDecrypted: " + decrypted;
+  }
 }

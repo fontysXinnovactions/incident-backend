@@ -9,6 +9,7 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
+import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
   private final SeverityClassifierPort severityClassifier;
   private final IncidentClosurePort incidentClosurePort;
   private final ConversationContextService conversationContextService;
-
+  private final IncidentRepositoryPort incidentRepository;
   /**
    * Handles a new incident report from the user.
    *
@@ -34,33 +35,33 @@ public class IncidentApplicationService implements IncidentInboundPort {
    */
   @Override
   public void reportIncident(CreateIncidentCommand command) {
-      boolean hasActiveContext = conversationContextService.hasActiveContext(command);
-      if (hasActiveContext) {
-          updateExistingIncident(command);
-          return;
-      }
-      Severity severity = severityClassifier.classify(command.message());
+    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
+    if (hasActiveContext) {
+      updateExistingIncident(command);
+      return;
+    }
+    Severity severity = severityClassifier.classify(command.message());
 
-      Incident incident = incidentService.createIncident(command.reporterId(),
-              command.reporterName(),
-              command.message(),
-              severity);
-      String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-      conversationContextService.saveNewIncident(command, channelId);
+    Incident incident =
+        incidentService.createIncident(
+            command.reporterId(), command.reporterName(), command.message(), severity);
+    String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
+    conversationContextService.saveNewIncident(command, channelId);
   }
-//  @Override
-//  public void reportIncident(CreateIncidentCommand command) {
-//    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
-//    if (hasActiveContext) {
-//      updateExistingIncident(command);
-//      return;
-//    }
-//    Severity severity = severityClassifier.classify(command.message());
-//
-//    Incident incident = incidentService.createIncident(command, severity);
-//    String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-//    conversationContextService.saveNewIncident(command, channelId);
-//  }
+
+  //  @Override
+  //  public void reportIncident(CreateIncidentCommand command) {
+  //    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
+  //    if (hasActiveContext) {
+  //      updateExistingIncident(command);
+  //      return;
+  //    }
+  //    Severity severity = severityClassifier.classify(command.message());
+  //
+  //    Incident incident = incidentService.createIncident(command, severity);
+  //    String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
+  //    conversationContextService.saveNewIncident(command, channelId);
+  //  }
 
   @Override
   public void closeIncident(CloseIncidentCommand command) {
@@ -93,8 +94,40 @@ public class IncidentApplicationService implements IncidentInboundPort {
           command.reporterId());
       return;
     }
+      log.info("Processing follow-up message for existing incident.");
+      // 2️⃣ Load the IncidentEntity again so we can send it to the developer channel
+      var incidentEntityOpt = incidentRepository.findById(command.reporterId());
+      if (incidentEntityOpt.isEmpty()) {
+          log.error("Incident not found for reporter={} when broadcasting follow-up.",
+                  command.reporterId());
+          return;
+      }
+
+      var entity = incidentEntityOpt.get();
+//FIXME: This is just for testing
+      // 3️⃣ Create a *minimal* Incident domain object for broadcasting
+      Incident incident = new Incident(
+              entity.getReporter().getReporterId(),
+              entity.getReporter().toString(),
+              entity.getSummary(),
+              Severity.MAJOR,
+//              Severity.valueOf(entity.getSeverity()),
+              "Assignee"
+      );
+
+      // 4️⃣ Broadcast to Slack/MS Teams/etc.
+      broadcaster.updateIncidentToDeveloper(
+              incident,
+              updateCommand.channelId()
+      );
+//      Incident updatedIncident = incidentService.updateIncident(updateCommand);
+//      broadcaster.updateIncidentToDeveloper(
+//              updateCommand.message(),
+//              updateCommand.channelId()
+//      );
+    //FIXME:
     // If it's an update, update context and send it to the existing channel
-    Incident updatedIncident = incidentService.updateIncident(updateCommand);
-    broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
+
+//    broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
   }
 }
