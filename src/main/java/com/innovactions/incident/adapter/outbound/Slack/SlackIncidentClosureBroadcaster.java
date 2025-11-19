@@ -1,10 +1,10 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.domain.event.IncidentClosedEvent;
-import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
+import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.conversations.ConversationsKickResponse;
@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.context.ApplicationEventPublisher;
 
 @Slf4j
@@ -40,10 +39,9 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
       // supports multiplatform notification (currently whatsapp and slack)
       if (reporterInfo != null) {
         log.info(
-          "Publishing IncidentClosedEvent for reporter {} on platform {}",
-          reporterInfo.reporterId,
-          reporterInfo.platform
-        );
+            "Publishing IncidentClosedEvent for reporter {} on platform {}",
+            reporterInfo.reporterId,
+            reporterInfo.platform);
 
         eventPublisher.publishEvent(
             new IncidentClosedEvent(reporterInfo.reporterId, reporterInfo.platform, reason));
