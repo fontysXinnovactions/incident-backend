@@ -1,16 +1,18 @@
 package com.innovactions.incident.application;
 
 import com.innovactions.incident.adapter.outbound.persistence.Entity.MessageEntity;
-import com.innovactions.incident.adapter.outbound.persistence.IncidentJpaRepository;
 import com.innovactions.incident.adapter.outbound.persistence.MessagesJpaRepository;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
-import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
+import com.innovactions.incident.domain.model.Incident;
+import com.innovactions.incident.domain.model.Severity;
+import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import jakarta.transaction.Transactional;
-import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 @Slf4j
 @Service
@@ -18,8 +20,8 @@ import org.springframework.stereotype.Service;
 public class ConversationContextService {
 
   // FIXME: move everything got to do with jpa to the repository adapter
-  private final IncidentJpaRepository incidentJpaRepositoryPort;
-  private final IncidentRepositoryPort incidentRepository;
+
+  private final IncidentPersistencePort incidentPersistencePort;
   private final MessagesJpaRepository messagesJpaRepository;
 
   /**
@@ -31,7 +33,7 @@ public class ConversationContextService {
   @Transactional
   public UpdateIncidentCommand findValidUpdateContext(CreateIncidentCommand command) {
 
-    var context = incidentRepository.findById(command.reporterId());
+    var context = incidentPersistencePort.findById(command.reporterId());
     if (context.isEmpty()) {
       return null;
     }
@@ -59,7 +61,15 @@ public class ConversationContextService {
 
   // FIXME: decide the purpose of this method otherwise remove
   public void saveNewIncident(CreateIncidentCommand command, String channelId) {
-    incidentRepository.saveNewIncident(command, channelId);
+//    incidentPersistencePort.saveNewIncident(command, channelId);
+      Incident incident = new Incident(
+      command.reporterId(),
+              command.reporterName(),
+              command.message(),
+              Severity.MAJOR,
+              "Developer"// or any default logic for now
+      );
+      incidentPersistencePort.saveNewIncident(incident, channelId);
   }
 
   /**
@@ -68,7 +78,7 @@ public class ConversationContextService {
    */
   public boolean hasActiveContext(CreateIncidentCommand command) {
     // Find user's active conversation (if any)
-    var context = incidentRepository.findById(command.reporterId());
+    var context = incidentPersistencePort.findById(command.reporterId());
     if (context.isEmpty()) {
       log.debug("No active context found for {}", command.reporterId());
       return false;

@@ -22,7 +22,7 @@ public class IncidentService {
     return incident;
   }
 
-    public Incident updateExistingIncident(UpdateIncidentCommand command, CreateIncidentCommand createCommand) {
+    public Incident updateIncident(UpdateIncidentCommand command, CreateIncidentCommand createCommand) {
         String assignee = assign(command.message());
 
         Incident updated = new Incident(

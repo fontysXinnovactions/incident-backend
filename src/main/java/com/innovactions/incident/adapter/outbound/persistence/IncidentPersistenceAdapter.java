@@ -3,9 +3,11 @@ package com.innovactions.incident.adapter.outbound.persistence;
 import com.innovactions.incident.adapter.outbound.persistence.Entity.IncidentEntity;
 import com.innovactions.incident.adapter.outbound.persistence.Entity.MessageEntity;
 import com.innovactions.incident.adapter.outbound.persistence.Entity.ReporterEntity;
+import com.innovactions.incident.adapter.outbound.persistence.mapper.IncidentMapper;
 import com.innovactions.incident.adapter.security.EncryptionAdapter;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
-import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
+import com.innovactions.incident.domain.model.Incident;
+import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 
 import java.time.Instant;
 import java.util.List;
@@ -18,16 +20,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class IncidentRepositoryAdapter implements IncidentRepositoryPort {
+public class IncidentPersistenceAdapter implements IncidentPersistencePort {
   private final IncidentJpaRepository incidentJpaRepository;
   private final ReporterJpaRepository reporterJpaRepository;
   private final MessagesJpaRepository messagesJpaRepository;
   private final EncryptionAdapter encryptionAdapter;
+//  private final IncidentMapper incidentMapper;
 
   @Transactional
   @Override
-  public void saveNewIncident(CreateIncidentCommand command, String channelId) {
-    String encryptedReporterId = encryptionAdapter.encrypt(command.reporterId());
+//  public void saveNewIncident(CreateIncidentCommand command, String channelId) {
+  public void saveNewIncident(Incident incident, String channelId) {
+    String encryptedReporterId = encryptionAdapter.encrypt(incident.getReporterId());
     // checks if reporter exists before adding new  reporter
     ReporterEntity reporterEntity =
         reporterJpaRepository
@@ -41,9 +45,11 @@ public class IncidentRepositoryAdapter implements IncidentRepositoryPort {
 
     IncidentEntity incidentEntity =
         IncidentEntity.builder()
-                .summary(command.message())
+//                .summary(command.message())
+                .summary(incident.getDetails())
             .slackChannelId(channelId)
-            .createdAt(command.timestamp())
+//            .createdAt(command.timestamp())
+                .createdAt(incident.getReportedAt())
             .reporter(reporterEntity)
             .build();
 
@@ -52,13 +58,15 @@ public class IncidentRepositoryAdapter implements IncidentRepositoryPort {
     MessageEntity messageEntity =
         MessageEntity.builder()
             .incident(incidentEntity)
-            .content(command.message())
-            .sentAt(command.timestamp())
+//            .content(command.message())
+//            .sentAt(command.timestamp())
+                .content(incident.getDetails())
+                .content(incident.getDetails())
             .build();
 
     messagesJpaRepository.save(messageEntity);
 
-    log.info("Incident persisted for reporter {}", command.reporterId());
+    log.info("Incident persisted for reporter {}", incident.getReporterId());
   }
 
   @Override

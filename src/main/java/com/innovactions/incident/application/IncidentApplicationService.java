@@ -9,7 +9,7 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
-import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
+import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
   private final SeverityClassifierPort severityClassifier;
   private final IncidentClosurePort incidentClosurePort;
   private final ConversationContextService conversationContextService;
-  private final IncidentRepositoryPort incidentRepository;
+  private final IncidentPersistencePort incidentRepository;
   /**
    * Handles a new incident report from the user.
    *
