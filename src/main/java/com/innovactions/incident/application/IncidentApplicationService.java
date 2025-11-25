@@ -9,7 +9,6 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
-import com.innovactions.incident.port.outbound.IncidentRepositoryPort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,8 @@ public class IncidentApplicationService implements IncidentInboundPort {
   private final SeverityClassifierPort severityClassifier;
   private final IncidentClosurePort incidentClosurePort;
   private final ConversationContextService conversationContextService;
-  private final IncidentRepositoryPort incidentRepository;
+  // private final IncidentRepositoryPort incidentRepository;
+
   /**
    * Handles a new incident report from the user.
    *
@@ -44,7 +44,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     Incident incident = incidentService.createIncident(command, severity);
     String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-    conversationContextService.saveNewIncident(command, channelId);
+    conversationContextService.saveNewIncident(command, channelId);//FIXME:
   }
 
   @Override
@@ -54,11 +54,10 @@ public class IncidentApplicationService implements IncidentInboundPort {
     String channelId = command.channelId();
     String reason = command.reason();
 
-        // 1️⃣ Close the Slack channel (always done)
-        incidentClosurePort.closeIncident(developerId, channelId, reason);
-        log.info("Closure... reporter '{}' via {}", developerId, channelId);
-
-    }
+    // 1️⃣ Close the Slack channel (always done)
+    incidentClosurePort.closeIncident(developerId, channelId, reason);
+    log.info("Closure... reporter '{}' via {}", developerId, channelId);
+  }
 
   /**
    * Use-case: Interpret messages from a conversation and determine if a message is an incident or
@@ -72,15 +71,16 @@ public class IncidentApplicationService implements IncidentInboundPort {
     UpdateIncidentCommand updateCommand =
         conversationContextService.findValidUpdateContext(command);
 
-        // If it's not an update return
-        if (updateCommand == null) {
-            broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
-            log.info("No valid update context found for reporter {} — starting new incident flow.",
-                    command.reporterId());
-            return;
-        }
-        // If it's an update, update context and send it to the existing channel
-        Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
-        broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
+    // If it's not an update return
+    if (updateCommand == null) {
+      broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
+      log.info(
+          "No valid update context found for reporter {} — starting new incident flow.",
+          command.reporterId());
+      return;
     }
+    // If it's an update, update context and send it to the existing channel
+    Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
+    broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
+  }
 }

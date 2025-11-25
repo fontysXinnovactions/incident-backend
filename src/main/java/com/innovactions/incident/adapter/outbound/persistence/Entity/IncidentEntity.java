@@ -4,6 +4,8 @@ import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.model.Status;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,11 +29,11 @@ public class IncidentEntity {
   @Column(name = "slack_channel_id")
   private String slackChannelId;
 
-    @Enumerated(EnumType.STRING)
-    private Severity severity;
+  @Enumerated(EnumType.STRING)
+  private Severity severity;
 
-    @Enumerated(EnumType.STRING)
-    private Status status;
+  @Enumerated(EnumType.STRING)
+  private Status status;
 
   @Column(name = "created_at")
   private Instant createdAt = Instant.now();
@@ -39,4 +41,12 @@ public class IncidentEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "reporter_ref", referencedColumnName = "id")
   private ReporterEntity reporter;
+
+//    @OneToMany(
+//            mappedBy = "incident",
+//            cascade = CascadeType.ALL,
+//            orphanRemoval = true,
+//            fetch = FetchType.LAZY
+//    )
+//    private List<MessageEntity> messages = new ArrayList<>();
 }

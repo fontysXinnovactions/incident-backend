@@ -1,5 +1,7 @@
 package com.innovactions.incident.port.outbound;
 
+import com.innovactions.incident.adapter.outbound.Slack.ReporterInfo;
+
 import java.util.List;
 
 /**

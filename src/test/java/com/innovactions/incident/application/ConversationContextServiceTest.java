@@ -3,12 +3,15 @@ package com.innovactions.incident.application;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.innovactions.incident.adapter.outbound.persistence.Repository.MessagesJpaRepository;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.domain.model.ConversationContext;
 import com.innovactions.incident.port.outbound.ConversationRepositoryPort;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+
+import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,13 +19,18 @@ import org.junit.jupiter.api.Test;
 
 class ConversationContextServiceTest {
 
-  private ConversationRepositoryPort repository;
-  private ConversationContextService service;
+  private ConversationRepositoryPort repository;//FIXME: this repo is not in use anymore
+    private IncidentPersistencePort persistence;
+    private ConversationContextService service;
+    private MessagesJpaRepository messagesJpaRepository;
 
   @BeforeEach
   void setUp() {
-    repository = mock(ConversationRepositoryPort.class);
+    //repository = mock(ConversationRepositoryPort.class);
     //    service = new ConversationContextService(repository);
+      persistence = mock(IncidentPersistencePort.class);
+      messagesJpaRepository = mock(MessagesJpaRepository.class);
+      service = new ConversationContextService(persistence, messagesJpaRepository);
   }
 
   @Nested
@@ -186,7 +194,14 @@ class ConversationContextServiceTest {
     void shouldSaveNewIncident() {
       // Given
       Instant t = Instant.now();
-      var command = CreateIncidentCommand.builder().reporterId("u1").timestamp(t).build();
+      var command = CreateIncidentCommand.builder().reporterId("u1").reporterName("John Doe").timestamp(t).build();
+//        Incident incident = new Incident(
+//                command.reporterId(),
+//                command.reporterName(),
+//                command.message(),
+//                Severity.MAJOR,
+//                "Developer-1"
+//        ); //FIXME:
 
       // When
       service.saveNewIncident(command, "C-001");

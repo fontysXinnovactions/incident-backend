@@ -2,7 +2,7 @@ package com.innovactions.incident.adapter.outbound;
 
 import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
-import com.innovactions.incident.port.outbound.ReporterInfo;
+import com.innovactions.incident.adapter.outbound.Slack.ReporterInfo;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.conversations.*;
@@ -59,7 +59,7 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
       log.error("Error setting topic for {}: {}", channelId, e.getMessage(), e);
     }
   }
-  
+
   @Override
   public ReporterInfo extractReporterIdFromTopic(String channelId) {
     try {

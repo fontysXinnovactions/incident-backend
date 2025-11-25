@@ -1,6 +1,8 @@
 package com.innovactions.incident.domain.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.*;
 
@@ -18,7 +20,14 @@ public class Incident {
 
   @NonNull private String details;
 
+  /**
+   * List of conversation messages.
+   */
+//  private final List<Message> messages = new ArrayList<>();
+
   @NonNull private Severity severity;
+
+  private String aiSummary; // using Ai get the context of the message and return summary
 
   @NonNull private String assignee;
 
@@ -46,9 +55,15 @@ public class Incident {
   }
 
   public void updateDetails(String newDetails) {
-     this.details = newDetails;
+    this.details = newDetails;
   }
 
+    /**
+     * Add a conversation message to the list.
+     */
+//    public void addMessage(Message message) {
+//        messages.add(message);
+//    }
   public String summary() {
     return "📢 Incident ["
         + severity

@@ -127,42 +127,39 @@ public class SlackConfig {
     return new SlackCloseIncident(incidentInboundPort);
   }
 
-    @Bean
-    public IncidentBroadcasterPort slackBroadcaster(
-      ChannelNameGenerator channelNameGenerator, 
-      BotMessagingPort managerBotMessagingPort, 
-      BotMessagingPort reporterBotMessagingPort, 
+  @Bean
+  public IncidentBroadcasterPort slackBroadcaster(
+      ChannelNameGenerator channelNameGenerator,
+      BotMessagingPort managerBotMessagingPort,
+      BotMessagingPort reporterBotMessagingPort,
       ChannelAdministrationPort channelAdministrationPort,
-      EncryptionService encryptionService
-      ) {
-        return new SlackBroadcaster(
-          developerUserId, 
-          channelNameGenerator, 
-          managerBotMessagingPort, 
-          reporterBotMessagingPort, 
-          channelAdministrationPort,
-          encryptionService
-        );
-    }
+      EncryptionService encryptionService) {
+    return new SlackBroadcaster(
+        developerUserId,
+        channelNameGenerator,
+        managerBotMessagingPort,
+        reporterBotMessagingPort,
+        channelAdministrationPort,
+        encryptionService);
+  }
 
   @Bean
   public IncidentClosurePort incidentClosureBroadcaster(
       BotMessagingPort reporterBotMessagingPort,
       BotMessagingPort managerBotMessagingPort,
       ApplicationEventPublisher eventPublisher,
-      ChannelAdministrationPort channelAdministrationPort
-  ) {
+      ChannelAdministrationPort channelAdministrationPort) {
     return new SlackIncidentClosureBroadcaster(
-        botTokenB, 
-        reporterBotMessagingPort, 
-        managerBotMessagingPort, 
+        botTokenB,
+        reporterBotMessagingPort,
+        managerBotMessagingPort,
         eventPublisher,
-        channelAdministrationPort
-    );
+        channelAdministrationPort);
   }
 
   @Bean
-  public IncidentReporterNotifierPort slackIncidentReporterNotifierAdapter(BotMessagingPort reporterBotMessagingPort) {
+  public IncidentReporterNotifierPort slackIncidentReporterNotifierAdapter(
+      BotMessagingPort reporterBotMessagingPort) {
     return new SlackIncidentReporterNotifierAdapter(reporterBotMessagingPort);
   }
 
@@ -170,8 +167,7 @@ public class SlackConfig {
   public SlackManagerActions slackManagerActions(
       ChannelAdministrationPort channelAdministrationPort,
       BotMessagingPort managerBotMessagingPort,
-      IncidentBroadcasterPort broadcaster
-  ) {
+      IncidentBroadcasterPort broadcaster) {
     return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort, broadcaster);
   }
 

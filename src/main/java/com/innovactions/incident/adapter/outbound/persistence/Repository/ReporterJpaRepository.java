@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.outbound.persistence;
+package com.innovactions.incident.adapter.outbound.persistence.Repository;
 
 import com.innovactions.incident.adapter.outbound.persistence.Entity.ReporterEntity;
 import java.util.Optional;
