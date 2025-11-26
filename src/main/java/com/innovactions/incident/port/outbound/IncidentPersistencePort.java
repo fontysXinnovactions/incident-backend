@@ -1,7 +1,6 @@
 package com.innovactions.incident.port.outbound;
 
 import com.innovactions.incident.adapter.outbound.persistence.Entity.IncidentEntity;
-import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
 
 import java.time.Instant;
@@ -13,7 +12,7 @@ public interface IncidentPersistencePort {
 
   Optional<IncidentEntity> findById(String reporterId);
 
-  List<IncidentEntity> findActiveByReporter(String reporterRef);
+  List<IncidentEntity> findAllActiveByReporter(String reporterId);//to get all, add staus later
 
   boolean existsByReporter(String reporterId);
 

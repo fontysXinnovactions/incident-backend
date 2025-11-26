@@ -9,7 +9,6 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
-import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
   private final SeverityClassifierPort severityClassifier;
   private final IncidentClosurePort incidentClosurePort;
   private final ConversationContextService conversationContextService;
-  private final IncidentPersistencePort incidentRepository;
+
   /**
    * Handles a new incident report from the user.
    *
@@ -35,11 +34,10 @@ public class IncidentApplicationService implements IncidentInboundPort {
    */
   @Override
   public void reportIncident(CreateIncidentCommand command) {
-    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
-    if (hasActiveContext) {
-      updateExistingIncident(command);
-      return;
-    }
+
+    boolean updated = updateExistingIncident(command);
+    if (updated) return;
+
     Severity severity = severityClassifier.classify(command.message());
 
     Incident incident = incidentService.createIncident(command, severity);
@@ -65,22 +63,25 @@ public class IncidentApplicationService implements IncidentInboundPort {
    * not.
    *
    * @param command Incoming incident
+   * @return
    */
   @Override
-  public void updateExistingIncident(CreateIncidentCommand command) {
+  public boolean updateExistingIncident(CreateIncidentCommand command) {
 
-    UpdateIncidentCommand updateCommand =
-        conversationContextService.findValidUpdateContext(command);
+    UpdateIncidentCommand updateCommand = conversationContextService.findValidUpdateContext(command);
 
         // If it's not an update return
         if (updateCommand == null) {
             broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
             log.info("No valid update context found for reporter {} — starting new incident flow.",
                     command.reporterId());
-            return;
+            return false;
         }
+
         // If it's an update, update context and send it to the existing channel
         Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
         broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
-    }
+        return true;
+
+  }
 }

@@ -75,9 +75,17 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
     return incidentJpaRepository.findActiveByReporter_ReporterId(encrypted);
   }
 
+    /**
+     * Finds all incidents for the given reporter with the specified status.
+     *
+     * @param reporterId reporter's plain (unencrypted) ID
+     * @return list of IncidentContext containing the incident and its Slack channel ID
+     */
   @Override
-  public List<IncidentEntity> findActiveByReporter(String reporterRef) {
-    return List.of();
+  public List<IncidentEntity> findAllActiveByReporter(String reporterId) {
+      String encrypted = encryptionAdapter.encrypt(reporterId);
+      return incidentJpaRepository
+              .findAllByReporter_ReporterId(encrypted);
   }
 
   @Override
