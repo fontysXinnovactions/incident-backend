@@ -70,18 +70,18 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     UpdateIncidentCommand updateCommand = conversationContextService.findValidUpdateContext(command);
 
-        // If it's not an update return
-        if (updateCommand == null) {
-            broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
-            log.info("No valid update context found for reporter {} — starting new incident flow.",
-                    command.reporterId());
-            return false;
-        }
+    // If it's not an update return
+    if (updateCommand == null) {
+        broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
+        log.info("No valid update context found for reporter {} — starting new incident flow.",
+                command.reporterId());
+        return false;
+    }
 
-        // If it's an update, update context and send it to the existing channel
-        Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
-        broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
-        return true;
+    // If it's an update, update context and send it to the existing channel
+    Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
+    broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
+    return true;
 
   }
 }
