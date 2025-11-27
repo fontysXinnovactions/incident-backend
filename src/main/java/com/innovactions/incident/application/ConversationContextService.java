@@ -70,7 +70,8 @@ public class ConversationContextService {
                       .build();
 
       messagesJpaRepository.save(messageEntity);
-      log.info("Updated context for user {}", latest);
+      log.info("Updated context for user: id={}, reporterId={}, status={}, createdAt={}",
+              latest.getId(), latest.getReporterId(), latest.getStatus(), latest.getCreatedAt());
 
       return UpdateIncidentCommand.builder()
               .channelId(latest.getSlackChannelId())
