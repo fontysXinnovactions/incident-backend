@@ -42,7 +42,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     Incident incident = incidentService.createIncident(command, severity);
     String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-    conversationContextService.saveNewIncident(command, channelId);
+    conversationContextService.saveNewIncident(command, channelId, severity);
   }
 
   @Override

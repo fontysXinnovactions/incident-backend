@@ -6,4 +6,9 @@ package com.innovactions.incident.domain.event;
  * <p>Carries information about the reporter, the platform where the incident was created, and the
  * reason for closure.
  */
-public record IncidentClosedEvent(String reporterId, String platform, String reason) {}
+public record IncidentClosedEvent(
+        String slackChannel,
+        String reporterId,
+        String platform,
+        String reason
+) {}

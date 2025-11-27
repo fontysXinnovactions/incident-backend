@@ -3,14 +3,13 @@ package com.innovactions.incident.adapter.outbound.persistence.Entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
 
 @Entity
 @Table(name = "messages")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +19,7 @@ public class MessageEntity {
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "incident_ref", nullable = false)
+  @JoinColumn(name = "incident_id", nullable = false)
   private IncidentEntity incident;
 
   @Column(columnDefinition = "text", nullable = false)

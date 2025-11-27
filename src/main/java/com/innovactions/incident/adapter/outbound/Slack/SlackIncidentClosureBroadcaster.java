@@ -46,7 +46,7 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
         );
 
         eventPublisher.publishEvent(
-            new IncidentClosedEvent(reporterInfo.reporterId, reporterInfo.platform, reason));
+            new IncidentClosedEvent(channelId, reporterInfo.reporterId, reporterInfo.platform, reason));
       }
 
     } catch (Exception e) {

@@ -2,21 +2,24 @@ package com.innovactions.incident.port.outbound;
 
 import com.innovactions.incident.adapter.outbound.persistence.Entity.IncidentEntity;
 import com.innovactions.incident.domain.model.Incident;
+import com.innovactions.incident.domain.model.Status;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 public interface IncidentPersistencePort {
   void saveNewIncident(Incident incident, String channelId);
 
-  Optional<IncidentEntity> findById(String reporterId);
+  List<IncidentEntity> findAllActiveByReporter(String reporterId, Status status);
 
-  List<IncidentEntity> findAllActiveByReporter(String reporterId);//to get all, add staus later
+  boolean existsByReporter(String reporterId, Status status);
 
-  boolean existsByReporter(String reporterId);
+  // needed for resolving incidents via Slack channel
+  Optional<IncidentEntity> findBySlackChannelId(String slackChannelId);
 
-  void updateIncident(IncidentEntity incident, String followUpMessage,
-                                Instant timestamp);
+  // update status
+  void updateIncidentStatus(String incidentId, Status newStatus);
+
+
 
 }

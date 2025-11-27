@@ -4,21 +4,22 @@ import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.model.Status;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
 
 @Entity
 @Table(name = "incidents")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class IncidentEntity {
+//    @GeneratedValue(strategy = GenerationType.UUID)
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
   @Column(name = "summary")
@@ -27,16 +28,23 @@ public class IncidentEntity {
   @Column(name = "slack_channel_id")
   private String slackChannelId;
 
-    @Enumerated(EnumType.STRING)
-    private Severity severity;
+  @Enumerated(EnumType.STRING)
+  private Severity severity;
 
-    @Enumerated(EnumType.STRING)
-    private Status status;
+  @Enumerated(EnumType.STRING)
+  private Status status;
 
   @Column(name = "created_at")
   private Instant createdAt = Instant.now();
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "reporter_ref", referencedColumnName = "id")
+  @JoinColumn(name = "reporter_id", referencedColumnName = "id")
   private ReporterEntity reporter;
+
+    @OneToMany(
+            mappedBy = "incident",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<MessageEntity> messages = new ArrayList<>();
 }

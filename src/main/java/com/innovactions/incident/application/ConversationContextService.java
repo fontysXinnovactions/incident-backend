@@ -7,6 +7,7 @@ import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.model.Severity;
+import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Comparator;
 
 @Slf4j
@@ -21,10 +23,9 @@ import java.util.Comparator;
 @RequiredArgsConstructor
 public class ConversationContextService {
 
-
-
+  private static final Status ACTIVE_STATUS = Status.OPEN;
   private final IncidentPersistencePort incidentPersistencePort;
-  private final MessagesJpaRepository messagesJpaRepository; // FIXME: move everything got to do with jpa to the repository adapter
+  private final MessagesJpaRepository messagesJpaRepository;
 
   /**
    * Finds and updates a valid conversation context for a user.
@@ -40,7 +41,7 @@ public class ConversationContextService {
       }
 
       // Step 2 - fetch all open incident from the reporter
-      var incidents = incidentPersistencePort.findAllActiveByReporter(command.reporterId());
+      var incidents = incidentPersistencePort.findAllActiveByReporter(command.reporterId(), ACTIVE_STATUS);
 
       // TODO: Steps 3 and 4 should eventually be replaced by AI selecting the correct conversation.
       // NOTE: Match the appropriate incident by comparing persisted aiSummary values or message history.
@@ -49,21 +50,23 @@ public class ConversationContextService {
               .max(Comparator.comparing(IncidentEntity::getCreatedAt))
               .get();
 
+
      // Step 4 - Check expiration (5 minutes window)
-      boolean expired = command.timestamp()
-              .isAfter(latest.getCreatedAt().plus(Duration.ofMinutes(5)));
+      Instant now = Instant.now();
+      boolean expired = now.isAfter(latest.getCreatedAt().plus(Duration.ofMinutes(10)));
 
       if (expired) {
           log.info("Latest incident expired for reporter {}, new incident required",
                   command.reporterId());
           return null;
       }
+
       //Step 5 - Update incident add follow-up message
       MessageEntity messageEntity =
               MessageEntity.builder()
                       .incident(latest)
                       .content(command.message())
-                      .sentAt(command.timestamp())
+                      .sentAt(now)
                       .build();
 
       messagesJpaRepository.save(messageEntity);
@@ -78,14 +81,14 @@ public class ConversationContextService {
 
   }
 
-  // FIXME: decide the purpose of this method otherwise remove
-  public void saveNewIncident(CreateIncidentCommand command, String channelId) {
+
+  public void saveNewIncident(CreateIncidentCommand command, String channelId, Severity severity) {
 
       Incident incident = new Incident(
       command.reporterId(),
               command.reporterName(),
               command.message(),
-              Severity.MAJOR,
+              severity,
               "Developer"// or any default logic for now
       );
       incidentPersistencePort.saveNewIncident(incident, channelId);
@@ -96,11 +99,8 @@ public class ConversationContextService {
    * not older than 24 hours.
    */
   public boolean hasActiveContext(CreateIncidentCommand command) {
-      // Find user's active conversation (if any)
-      // return light boolean row check
-      // do not pull all list and filter
-      // add status as well
-      boolean exists = incidentPersistencePort.existsByReporter(command.reporterId());
+      // Check user's active(Status = open) conversation (if any)
+      boolean exists = incidentPersistencePort.existsByReporter(command.reporterId(), ACTIVE_STATUS);
 
       if (!exists) {
           log.debug("No active context found for {}", command.reporterId());
@@ -112,4 +112,11 @@ public class ConversationContextService {
   }
 
 }
+
+
+
+
+
+
+
 
