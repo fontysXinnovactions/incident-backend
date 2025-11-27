@@ -10,7 +10,7 @@ public class IncidentMapper {
 
         Incident domain = new Incident(
                 entity.getReporter().getReporterId(),
-                entity.getReporter().getReporterId(),
+                entity.getReporter().getReporterName(),
                 entity.getSummary(),
                 entity.getSeverity(),
                 "Assignee"
