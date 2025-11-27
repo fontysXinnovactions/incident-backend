@@ -20,9 +20,7 @@ public class Incident {
 
   @NonNull private String details;
 
-    /**
-     * List of conversation messages.
-     */
+  /** List of conversation messages. */
   private final List<Message> messages = new ArrayList<>();
 
   @NonNull private Severity severity;
@@ -53,15 +51,13 @@ public class Incident {
   }
 
   public void updateDetails(String newDetails) {
-     this.details = newDetails;
+    this.details = newDetails;
   }
 
-    /**
-     * Add a conversation message to the list.
-     */
-    public void addMessage(Message message) {
-        messages.add(message);
-    }
+  /** Add a conversation message to the list. */
+  public void addMessage(Message message) {
+    messages.add(message);
+  }
 
   public String summary() {
     return "📢 Incident ["

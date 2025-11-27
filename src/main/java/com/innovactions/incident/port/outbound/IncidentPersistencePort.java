@@ -3,7 +3,6 @@ package com.innovactions.incident.port.outbound;
 import com.innovactions.incident.adapter.outbound.persistence.Entity.IncidentEntity;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.model.Status;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +18,4 @@ public interface IncidentPersistencePort {
 
   // update status
   void updateIncidentStatus(String incidentId, Status newStatus);
-
-
-
 }

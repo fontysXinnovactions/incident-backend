@@ -3,7 +3,6 @@ package com.innovactions.incident.adapter.outbound.persistence.Entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
-
 import lombok.*;
 
 @Entity
@@ -29,7 +28,7 @@ public class MessageEntity {
   private Instant sentAt;
 
   @PrePersist
-  private  void prePersist() {
+  private void prePersist() {
     if (sentAt == null) sentAt = Instant.now();
   }
 }

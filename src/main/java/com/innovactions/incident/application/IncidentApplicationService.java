@@ -12,7 +12,6 @@ import com.innovactions.incident.port.outbound.IncidentClosurePort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -68,20 +67,21 @@ public class IncidentApplicationService implements IncidentInboundPort {
   @Override
   public boolean updateExistingIncident(CreateIncidentCommand command) {
 
-    UpdateIncidentCommand updateCommand = conversationContextService.findValidUpdateContext(command);
+    UpdateIncidentCommand updateCommand =
+        conversationContextService.findValidUpdateContext(command);
 
-        // If it's not an update return
-        if (updateCommand == null) {
-            broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
-            log.info("No valid update context found for reporter {} — starting new incident flow.",
-                    command.reporterId());
-            return false;
-        }
+    // If it's not an update return
+    if (updateCommand == null) {
+      broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
+      log.info(
+          "No valid update context found for reporter {} — starting new incident flow.",
+          command.reporterId());
+      return false;
+    }
 
-        // If it's an update, update context and send it to the existing channel
-        Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
-        broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
-        return true;
-
+    // If it's an update, update context and send it to the existing channel
+    Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
+    broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
+    return true;
   }
 }

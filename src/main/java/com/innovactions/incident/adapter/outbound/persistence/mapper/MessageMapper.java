@@ -6,22 +6,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MessageMapper {
-    public Message toDomain(MessageEntity entity) {
-        return Message.loadExisting(
-                entity.getId(),
-                entity.getContent(),
-                entity.getSentAt()
-        );
+  public Message toDomain(MessageEntity entity) {
+    return Message.loadExisting(entity.getId(), entity.getContent(), entity.getSentAt());
+  }
 
-    }
+  public MessageEntity toEntity(Message domain) {
+    if (domain == null) return null;
 
-    public MessageEntity toEntity(Message domain) {
-        if (domain == null) return null;
-
-        return MessageEntity.builder()
-                .id(domain.getId())
-                .content(domain.getContent())
-                .sentAt(domain.getSentAt())
-                .build();//Fixme: Add entity?
-    }
+    return MessageEntity.builder()
+        .id(domain.getId())
+        .content(domain.getContent())
+        .sentAt(domain.getSentAt())
+        .build(); // Fixme: Add entity?
+  }
 }

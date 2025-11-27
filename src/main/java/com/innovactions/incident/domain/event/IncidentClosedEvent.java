@@ -7,8 +7,4 @@ package com.innovactions.incident.domain.event;
  * reason for closure.
  */
 public record IncidentClosedEvent(
-        String slackChannel,
-        String reporterId,
-        String platform,
-        String reason
-) {}
+    String slackChannel, String reporterId, String platform, String reason) {}

@@ -10,13 +10,12 @@ import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -35,63 +34,56 @@ public class ConversationContextService {
    */
   @Transactional
   public UpdateIncidentCommand findValidUpdateContext(CreateIncidentCommand command) {
-      //Step 1 - reporter should have at least one open incident
-      if (!hasActiveContext(command)) {
-          return null;
-      }
+    // Step 1 - reporter should have at least one open incident
+    if (!hasActiveContext(command)) {
+      return null;
+    }
 
-      // Step 2 - fetch all open incident from the reporter
-      var incidents = incidentPersistencePort.findAllActiveByReporter(command.reporterId(), ACTIVE_STATUS);
+    // Step 2 - fetch all open incident from the reporter
+    var incidents =
+        incidentPersistencePort.findAllActiveByReporter(command.reporterId(), ACTIVE_STATUS);
 
-      // TODO: Steps 3 and 4 should eventually be replaced by AI selecting the correct conversation.
-      // NOTE: Match the appropriate incident by comparing persisted aiSummary values or message history.
-      //Step 3 - Get the latest Incident from the user
-      var latest = incidents.stream()
-              .max(Comparator.comparing(IncidentEntity::getCreatedAt))
-              .get();
+    // TODO: Steps 3 and 4 should eventually be replaced by AI selecting the correct conversation.
+    // NOTE: Match the appropriate incident by comparing persisted aiSummary values or message
+    // history.
+    // Step 3 - Get the latest Incident from the user
+    var latest = incidents.stream().max(Comparator.comparing(IncidentEntity::getCreatedAt)).get();
 
+    // Step 4 - Check expiration (5 minutes window)
+    Instant now = Instant.now();
+    boolean expired = now.isAfter(latest.getCreatedAt().plus(Duration.ofMinutes(10)));
 
-     // Step 4 - Check expiration (5 minutes window)
-      Instant now = Instant.now();
-      boolean expired = now.isAfter(latest.getCreatedAt().plus(Duration.ofMinutes(10)));
+    if (expired) {
+      log.info(
+          "Latest incident expired for reporter {}, new incident required", command.reporterId());
+      return null;
+    }
 
-      if (expired) {
-          log.info("Latest incident expired for reporter {}, new incident required",
-                  command.reporterId());
-          return null;
-      }
+    // Step 5 - Update incident add follow-up message
+    MessageEntity messageEntity =
+        MessageEntity.builder().incident(latest).content(command.message()).sentAt(now).build();
 
-      //Step 5 - Update incident add follow-up message
-      MessageEntity messageEntity =
-              MessageEntity.builder()
-                      .incident(latest)
-                      .content(command.message())
-                      .sentAt(now)
-                      .build();
+    messagesJpaRepository.save(messageEntity);
+    log.info("Updated context for user {}", latest);
 
-      messagesJpaRepository.save(messageEntity);
-      log.info("Updated context for user {}", latest);
-
-      return UpdateIncidentCommand.builder()
-              .channelId(latest.getSlackChannelId())
-              .message(command.message())
-              .updatedAt(command.timestamp())
-              .build();
-
-
+    return UpdateIncidentCommand.builder()
+        .channelId(latest.getSlackChannelId())
+        .message(command.message())
+        .updatedAt(command.timestamp())
+        .build();
   }
-
 
   public void saveNewIncident(CreateIncidentCommand command, String channelId, Severity severity) {
 
-      Incident incident = new Incident(
-      command.reporterId(),
-              command.reporterName(),
-              command.message(),
-              severity,
-              "Developer"// or any default logic for now
-      );
-      incidentPersistencePort.saveNewIncident(incident, channelId);
+    Incident incident =
+        new Incident(
+            command.reporterId(),
+            command.reporterName(),
+            command.message(),
+            severity,
+            "Developer" // or any default logic for now
+            );
+    incidentPersistencePort.saveNewIncident(incident, channelId);
   }
 
   /**
@@ -99,24 +91,15 @@ public class ConversationContextService {
    * not older than 24 hours.
    */
   public boolean hasActiveContext(CreateIncidentCommand command) {
-      // Check user's active(Status = open) conversation (if any)
-      boolean exists = incidentPersistencePort.existsByReporter(command.reporterId(), ACTIVE_STATUS);
+    // Check user's active(Status = open) conversation (if any)
+    boolean exists = incidentPersistencePort.existsByReporter(command.reporterId(), ACTIVE_STATUS);
 
-      if (!exists) {
-          log.debug("No active context found for {}", command.reporterId());
-          return false;
-      }
+    if (!exists) {
+      log.debug("No active context found for {}", command.reporterId());
+      return false;
+    }
 
-      log.info("Reporter {} DOES have a previous incident", command.reporterId());
-      return true;
+    log.info("Reporter {} DOES have a previous incident", command.reporterId());
+    return true;
   }
-
 }
-
-
-
-
-
-
-
-

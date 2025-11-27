@@ -9,4 +9,3 @@ public record UpdateIncidentCommand(
     String message, // New details from follow-up
     Instant updatedAt // Timestamp
     ) {}
-

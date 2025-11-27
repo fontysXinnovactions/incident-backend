@@ -6,29 +6,30 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class IncidentMapper {
-    public Incident toDomain(IncidentEntity entity) {
+  public Incident toDomain(IncidentEntity entity) {
 
-        Incident domain = new Incident(
-                entity.getReporter().getReporterId(),
-                entity.getReporter().getReporterId(),
-                entity.getSummary(),
-                entity.getSeverity(),
-                "Assignee"
-        );
-        // Override fields that exist on the domain
-        domain.setStatus(entity.getStatus());
-        return domain;
-    }
-    public IncidentEntity toEntity(Incident domain, String channelId) {
-        if (domain == null) return null;
+    Incident domain =
+        new Incident(
+            entity.getReporter().getReporterId(),
+            entity.getReporter().getReporterId(),
+            entity.getSummary(),
+            entity.getSeverity(),
+            "Assignee");
+    // Override fields that exist on the domain
+    domain.setStatus(entity.getStatus());
+    return domain;
+  }
 
-        return IncidentEntity.builder()
-                .id(domain.getId())
-                .summary(domain.getDetails())
-                .severity(domain.getSeverity())
-                .status(domain.getStatus())
-                .createdAt(domain.getReportedAt())
-                .slackChannelId(channelId)
-                .build();
-    }
+  public IncidentEntity toEntity(Incident domain, String channelId) {
+    if (domain == null) return null;
+
+    return IncidentEntity.builder()
+        .id(domain.getId())
+        .summary(domain.getDetails())
+        .severity(domain.getSeverity())
+        .status(domain.getStatus())
+        .createdAt(domain.getReportedAt())
+        .slackChannelId(channelId)
+        .build();
+  }
 }

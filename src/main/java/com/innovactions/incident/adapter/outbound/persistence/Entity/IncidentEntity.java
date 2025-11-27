@@ -7,20 +7,19 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import lombok.*;
 
 @Entity
 @Table(name = "incidents")
 @Getter
 @Setter
+@ToString(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class IncidentEntity {
-//    @GeneratedValue(strategy = GenerationType.UUID)
-  @Id
-  private UUID id;
+  //    @GeneratedValue(strategy = GenerationType.UUID)
+  @Id private UUID id;
 
   @Column(name = "summary")
   private String summary;
@@ -41,10 +40,6 @@ public class IncidentEntity {
   @JoinColumn(name = "reporter_id", referencedColumnName = "id")
   private ReporterEntity reporter;
 
-    @OneToMany(
-            mappedBy = "incident",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<MessageEntity> messages = new ArrayList<>();
+  @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<MessageEntity> messages = new ArrayList<>();
 }
