@@ -47,7 +47,14 @@ public class ConversationContextService {
     // NOTE: Match the appropriate incident by comparing persisted aiSummary values or message
     // history.
     // Step 3 - Get the latest Incident from the user
-    var latest = incidents.stream().max(Comparator.comparing(IncidentEntity::getCreatedAt)).get();
+    var latest =
+        incidents.stream().max(Comparator.comparing(IncidentEntity::getCreatedAt)).orElse(null);
+
+    if (latest == null) {
+      log.info(
+          "No open incidents found for reporter {}, new incident required", command.reporterId());
+      return null;
+    }
 
     // Step 4 - Check expiration (5 minutes window)
     Instant now = Instant.now();
@@ -64,7 +71,12 @@ public class ConversationContextService {
         MessageEntity.builder().incident(latest).content(command.message()).sentAt(now).build();
 
     messagesJpaRepository.save(messageEntity);
-    log.info("Updated context for user {}", latest);
+    log.info(
+        "Updated context for user: id={}, reporterId={}, status={}, createdAt={}",
+        latest.getId(),
+        latest.getCreatedAt(),
+        latest.getStatus(),
+        latest.getCreatedAt());
 
     return UpdateIncidentCommand.builder()
         .channelId(latest.getSlackChannelId())

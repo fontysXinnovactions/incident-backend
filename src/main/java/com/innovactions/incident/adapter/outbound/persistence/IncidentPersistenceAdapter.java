@@ -90,10 +90,10 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
   }
 
   /**
-   * Updates the status of an incident Currently used for incident marked as resolved
+   * Updates the status of an incident. Currently used for incidents marked as resolved.
    *
-   * @param incidentId
-   * @param newStatus
+   * @param incidentId the unique identifier of the incident to update
+   * @param newStatus the new status to set for the incident
    */
   @Override
   public void updateIncidentStatus(String incidentId, Status newStatus) {

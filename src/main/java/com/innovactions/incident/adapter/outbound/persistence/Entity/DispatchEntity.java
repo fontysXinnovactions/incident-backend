@@ -2,7 +2,6 @@ package com.innovactions.incident.adapter.outbound.persistence.Entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
-
 import lombok.*;
 
 @Entity
