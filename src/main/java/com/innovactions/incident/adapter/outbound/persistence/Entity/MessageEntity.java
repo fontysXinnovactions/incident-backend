@@ -29,7 +29,7 @@ public class MessageEntity {
   private Instant sentAt;
 
   @PrePersist
-  private  void prePersist() {
+  private void prePersist() {
     if (sentAt == null) sentAt = Instant.now();
   }
 }
