@@ -110,11 +110,4 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
         incidentJpaRepository.save(incident);
     }
 
-
-
-
-
 }
-
-
-
