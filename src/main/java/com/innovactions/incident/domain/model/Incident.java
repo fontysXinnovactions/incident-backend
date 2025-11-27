@@ -56,12 +56,12 @@ public class Incident {
      this.details = newDetails;
   }
 
-    /**
-     * Add a conversation message to the list.
-     */
-    public void addMessage(Message message) {
-        messages.add(message);
-    }
+  /**
+   * Add a conversation message to the list.
+   */
+  public void addMessage(Message message) {
+    messages.add(message);
+  }
 
   public String summary() {
     return "📢 Incident ["
