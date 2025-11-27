@@ -45,10 +45,10 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
 
     IncidentEntity incidentEntity =
         IncidentEntity.builder()
-//                .summary(command.message())
                 .summary(incident.getDetails())
             .slackChannelId(channelId)
-//            .createdAt(command.timestamp())
+                .severity(incident.getSeverity())
+                .status(incident.getStatus())
                 .createdAt(incident.getReportedAt())
             .reporter(reporterEntity)
             .build();
@@ -58,10 +58,8 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
     MessageEntity messageEntity =
         MessageEntity.builder()
             .incident(incidentEntity)
-//            .content(command.message())
-//            .sentAt(command.timestamp())
                 .content(incident.getDetails())
-                .content(incident.getDetails())
+                .sentAt(incident.getReportedAt())
             .build();
 
     messagesJpaRepository.save(messageEntity);
