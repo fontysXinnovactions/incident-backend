@@ -63,7 +63,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
    * not.
    *
    * @param command Incoming incident
-   * @return
+   * @return {@code true} if the incident was updated; {@code false} otherwise.
    */
   @Override
   public boolean updateExistingIncident(CreateIncidentCommand command) {
