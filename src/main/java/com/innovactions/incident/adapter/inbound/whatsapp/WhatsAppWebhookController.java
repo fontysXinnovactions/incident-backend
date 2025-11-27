@@ -77,7 +77,7 @@ public class WhatsAppWebhookController {
 
     } catch (Exception e) {
       log.error("Failed to process WhatsApp webhook payload", e);
-      return ResponseEntity.ok().build();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
   }
 }
