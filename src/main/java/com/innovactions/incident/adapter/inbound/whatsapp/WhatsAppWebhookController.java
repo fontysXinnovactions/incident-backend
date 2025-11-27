@@ -61,7 +61,7 @@ public class WhatsAppWebhookController {
       @RequestBody(required = false) WhatsAppPayload payload) {
     if (payload == null || payload.getEntry() == null || payload.getEntry().isEmpty()) {
       log.warn("Received empty or invalid WhatsApp webhook payload");
-        return ResponseEntity.ok().build();
+      return ResponseEntity.badRequest().build();
     }
 
     try {
