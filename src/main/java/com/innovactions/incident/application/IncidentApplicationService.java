@@ -63,6 +63,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
    * not.
    *
    * @param command Incoming incident
+   * @return
    */
   @Override
   public boolean updateExistingIncident(CreateIncidentCommand command) {
