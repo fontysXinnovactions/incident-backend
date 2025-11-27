@@ -48,8 +48,13 @@ public class ConversationContextService {
       //Step 3 - Get the latest Incident from the user
       var latest = incidents.stream()
               .max(Comparator.comparing(IncidentEntity::getCreatedAt))
-              .get();
+              .orElse(null);
 
+      if (latest == null) {
+          log.info("No open incidents found for reporter {}, new incident required",
+                  command.reporterId());
+          return null;
+      }
 
      // Step 4 - Check expiration (5 minutes window)
       Instant now = Instant.now();
