@@ -14,9 +14,7 @@ public class SlackIncidentReporterNotifierAdapter implements IncidentReporterNot
   @Override
   public void notifyReporter(String reporterId, String reason) {
     reporterBotMessagingPort.sendMessage(
-        reporterId,
-        "✅ Your reported incident has been closed.\nReason: " + reason
-    );
+        reporterId, "✅ Your reported incident has been closed.\nReason: " + reason);
   }
 
   @Override

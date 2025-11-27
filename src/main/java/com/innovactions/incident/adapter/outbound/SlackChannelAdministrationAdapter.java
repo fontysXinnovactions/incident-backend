@@ -59,7 +59,7 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
       log.error("Error setting topic for {}: {}", channelId, e.getMessage(), e);
     }
   }
-  
+
   @Override
   public ReporterInfo extractReporterIdFromTopic(String channelId) {
     try {
