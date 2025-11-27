@@ -21,8 +21,8 @@ public class Incident {
   @NonNull private String details;
 
     /**
-     * List of conversation messages.
-     */
+    * List of conversation messages.
+    */
   private final List<Message> messages = new ArrayList<>();
 
   @NonNull private Severity severity;
