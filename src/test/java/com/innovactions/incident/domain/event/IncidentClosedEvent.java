@@ -22,7 +22,7 @@ class IncidentClosedEventTest {
   @DisplayName("should implement equals and hashCode based on all fields")
   void shouldImplementEqualsAndHashCode() {
     var e1 = new IncidentClosedEvent("slack-ch01", "r1", "whatsapp", "done");
-    var e2 = new IncidentClosedEvent("slack-ch02", "r1", "whatsapp", "done");
+    var e2 = new IncidentClosedEvent("slack-ch01", "r1", "whatsapp", "done");
     var e3 = new IncidentClosedEvent("slack-ch03", "r2", "slack", "done");
 
     assertThat(e1).isEqualTo(e2).hasSameHashCodeAs(e2);
