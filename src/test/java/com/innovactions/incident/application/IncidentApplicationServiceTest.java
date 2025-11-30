@@ -73,7 +73,7 @@ class IncidentApplicationServiceTest {
       inOrder.verify(classifier).classify("Database is down");
       inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
       inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
-      inOrder.verify(contextService).saveNewIncident(command, "channel-123");
+      inOrder.verify(contextService).saveNewIncident(command, "channel-123", Severity.MAJOR);
       verifyNoMoreInteractions(contextService, classifier, incidentService, broadcaster);
     }
 
