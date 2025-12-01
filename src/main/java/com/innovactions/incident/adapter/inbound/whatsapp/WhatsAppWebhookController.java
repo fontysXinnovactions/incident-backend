@@ -1,6 +1,7 @@
 package com.innovactions.incident.adapter.inbound.whatsapp;
 
 import com.innovactions.incident.adapter.inbound.whatsapp.mapper.WhatsAppIncidentCommandMapper;
+import com.innovactions.incident.adapter.outbound.AI.GeminiIncidentDetector;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import lombok.RequiredArgsConstructor;
@@ -67,12 +68,32 @@ public class WhatsAppWebhookController {
     try {
       log.debug("Incoming WhatsApp webhook received with {} entries", payload.getEntry().size());
 
-      CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
-      incidentInboundPort.reportIncident(command);
+        String messageText = "";
 
-      log.info(
-          "Successfully processed WhatsApp message from incident reporter {}",
-          command.reporterId());
+        try {
+            var msg = payload.getEntry().getFirst()
+                    .getChanges().getFirst()
+                    .getValue().getMessages().getFirst();
+
+            if (msg.getText() != null) {
+                messageText = msg.getText().getBody();
+            }
+        } catch (Exception ignored) {}
+
+      GeminiIncidentDetector detector = new GeminiIncidentDetector();
+      boolean isIncident = detector.isIncident(messageText);
+
+      if (isIncident) {
+        CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
+        incidentInboundPort.reportIncident(command);
+
+        log.info(
+            "Successfully processed WhatsApp message from incident reporter {}",
+            command.reporterId());
+      } else {
+        log.info("Message is not an incident. No incident created.");
+      }
+
       return ResponseEntity.ok().build();
 
     } catch (Exception e) {
