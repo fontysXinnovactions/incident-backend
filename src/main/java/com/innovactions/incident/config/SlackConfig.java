@@ -7,6 +7,7 @@ import com.innovactions.incident.adapter.inbound.slack.SlackReporterFlow;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentReporterNotifierAdapter;
+import com.innovactions.incident.adapter.outbound.Slack.SlackUserInfoAdapter;
 import com.innovactions.incident.adapter.outbound.SlackBotMessagingAdapter;
 import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
@@ -154,13 +155,15 @@ public class SlackConfig {
       BotMessagingPort reporterBotMessagingPort,
       BotMessagingPort managerBotMessagingPort,
       ApplicationEventPublisher eventPublisher,
-      ChannelAdministrationPort channelAdministrationPort) {
+      ChannelAdministrationPort channelAdministrationPort,
+      IncidentPersistencePort incidentPersistencePort) {
     return new SlackIncidentClosureBroadcaster(
         botTokenB,
         reporterBotMessagingPort,
         managerBotMessagingPort,
         eventPublisher,
-        channelAdministrationPort);
+        channelAdministrationPort,
+        incidentPersistencePort);
   }
 
   @Bean
@@ -173,8 +176,10 @@ public class SlackConfig {
   public SlackManagerActions slackManagerActions(
       ChannelAdministrationPort channelAdministrationPort,
       BotMessagingPort managerBotMessagingPort,
-      IncidentBroadcasterPort broadcaster) {
-    return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort, broadcaster);
+      IncidentBroadcasterPort broadcaster,
+      IncidentPersistencePort incidentPersistencePort) {
+    return new SlackManagerActions(
+        channelAdministrationPort, managerBotMessagingPort, broadcaster, incidentPersistencePort);
   }
 
   @Bean
@@ -190,5 +195,11 @@ public class SlackConfig {
   @Bean
   public ChannelAdministrationPort channelAdministrationPort(EncryptionService encryptionService) {
     return new SlackChannelAdministrationAdapter(botTokenB, encryptionService);
+  }
+
+  @Bean
+  public UserInfoPort slackUserInfoPort() {
+    // Use manager workspace bot token (bot B) for user lookup
+    return new SlackUserInfoAdapter(botTokenB);
   }
 }

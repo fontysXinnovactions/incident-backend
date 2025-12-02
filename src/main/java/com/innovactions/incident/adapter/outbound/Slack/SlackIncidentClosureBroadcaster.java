@@ -1,9 +1,11 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.domain.event.IncidentClosedEvent;
+import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
+import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
@@ -23,11 +25,29 @@ public class SlackIncidentClosureBroadcaster implements IncidentClosurePort {
   private final BotMessagingPort managerBotMessagingPort;
   private final ApplicationEventPublisher eventPublisher;
   private final ChannelAdministrationPort channelAdministrationPort;
+  private final IncidentPersistencePort incidentPersistencePort;
 
   public void closeIncident(String developerUserId, String channelId, String reason) {
     try {
       // announce closure in the incident channel
       announceClosure(channelId, developerUserId, reason);
+
+      // mark the underlying incident as RESOLVED in the database (if it exists)
+      incidentPersistencePort
+          .findBySlackChannelId(channelId)
+          .ifPresent(
+              entity -> {
+                try {
+                  incidentPersistencePort.updateIncidentStatus(
+                      entity.getId().toString(), Status.RESOLVED);
+                  log.info("Marked incident {} as RESOLVED", entity.getId());
+                } catch (Exception e) {
+                  log.warn(
+                      "Failed to update incident status to RESOLVED for channel {}: {}",
+                      channelId,
+                      e.getMessage());
+                }
+              });
 
       // extract reporter information from channel topic
       ReporterInfo reporterInfo = channelAdministrationPort.extractReporterIdFromTopic(channelId);

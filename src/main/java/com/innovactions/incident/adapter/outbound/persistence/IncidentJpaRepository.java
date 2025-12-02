@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface IncidentJpaRepository extends JpaRepository<IncidentEntity, UUID> {
@@ -16,4 +17,6 @@ public interface IncidentJpaRepository extends JpaRepository<IncidentEntity, UUI
   List<IncidentEntity> findAllByReporter_ReporterIdAndStatus(String reporterId, Status status);
 
   boolean existsByReporter_ReporterIdAndStatus(String reporterId, Status status);
+
+  List<IncidentEntity> findAllByStatus(Status status, Pageable pageable);
 }

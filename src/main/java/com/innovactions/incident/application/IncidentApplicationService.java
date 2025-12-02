@@ -34,9 +34,12 @@ public class IncidentApplicationService implements IncidentInboundPort {
    */
   @Override
   public void reportIncident(CreateIncidentCommand command) {
-
-    boolean updated = updateExistingIncident(command);
-    if (updated) return;
+    // is the user updating an existing incident?
+    UpdateIncidentCommand updateCommand = conversationContextService.findValidUpdateContext(command);
+    if (updateCommand != null) {
+      // its an update
+      return;
+    }
 
     Severity severity = severityClassifier.classify(command.message());
 
