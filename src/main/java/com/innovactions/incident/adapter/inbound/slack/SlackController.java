@@ -176,12 +176,13 @@ public class SlackController {
           incident.getAssignee() == null || incident.getAssignee().isBlank()
               ? "Pending"
               : incident.getAssignee();
+      String assigneeDisplay = ("Pending".equals(assignee)) ? "Pending" : "<@" + assignee + ">";
 
       sb.append(String.format("• *ID:* `%s`\n", incident.getId()));
       sb.append(String.format("  *Reporter:* %s\n", reporterDisplay));
       sb.append(String.format("  *Status:* %s\n", incident.getStatus()));
       sb.append(String.format("  *Severity:* %s\n", incident.getSeverity()));
-      sb.append(String.format("  *Assignee:* <@%s>\n", assignee));
+      sb.append(String.format("  *Assignee:* %s\n", assigneeDisplay));
       sb.append(
           String.format(
               "  *Created:* %s\n",
