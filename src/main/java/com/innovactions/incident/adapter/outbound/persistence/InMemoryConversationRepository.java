@@ -1,4 +1,4 @@
-package com.innovactions.incident.persistence;
+package com.innovactions.incident.adapter.outbound.persistence;
 
 import com.innovactions.incident.domain.model.ConversationContext;
 import com.innovactions.incident.port.outbound.ConversationRepositoryPort;

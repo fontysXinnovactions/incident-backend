@@ -13,7 +13,7 @@ public class WhatsAppTestController {
 
   @GetMapping("/send")
   public String sendTestMessage() {
-    outboundAdapter.sendTextMessage("31619315253", "Hello from Outbound POC");
+    outboundAdapter.sendTextMessage("3161XXXXXXX", "Hello from Outbound POC");
     return "Message triggered!";
   }
 }

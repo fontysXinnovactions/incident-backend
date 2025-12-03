@@ -1,6 +1,9 @@
 package com.innovactions.incident.config;
 
-import com.innovactions.incident.adapter.inbound.slack.*;
+import com.innovactions.incident.adapter.inbound.slack.SlackCloseIncident;
+import com.innovactions.incident.adapter.inbound.slack.SlackCreateIncident;
+import com.innovactions.incident.adapter.inbound.slack.SlackManagerActions;
+import com.innovactions.incident.adapter.inbound.slack.SlackReporterFlow;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentReporterNotifierAdapter;
@@ -23,21 +26,24 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SlackConfig {
+  private final String signingSecretA;
+  private final String signingSecretB;
+  private final String botTokenA;
+  private final String botTokenB;
+  private final String developerUserId;
 
-  @Value("${slack.signingSecretA}")
-  private String signingSecretA;
-
-  @Value("${slack.signingSecretB}")
-  private String signingSecretB;
-
-  @Value("${slack.botTokenA}")
-  private String botTokenA;
-
-  @Value("${slack.botTokenB}")
-  private String botTokenB;
-
-  @Value("${slack.developerUserId}")
-  private String developerUserId;
+  public SlackConfig(
+      @Value("${slack.signingSecretA}") String signingSecretA,
+      @Value("${slack.signingSecretB}") String signingSecretB,
+      @Value("${slack.botTokenA}") String botTokenA,
+      @Value("${slack.botTokenB}") String botTokenB,
+      @Value("${slack.developerUserId}") String developerUserId) {
+    this.signingSecretA = signingSecretA;
+    this.signingSecretB = signingSecretB;
+    this.botTokenA = botTokenA;
+    this.botTokenB = botTokenB;
+    this.developerUserId = developerUserId;
+  }
 
   /* ─────────────────────────────────────
   Reporter (Bot A)

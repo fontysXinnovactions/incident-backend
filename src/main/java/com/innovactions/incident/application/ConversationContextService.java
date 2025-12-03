@@ -1,9 +1,18 @@
 package com.innovactions.incident.application;
 
+import com.innovactions.incident.adapter.outbound.persistence.Entity.IncidentEntity;
+import com.innovactions.incident.adapter.outbound.persistence.Entity.MessageEntity;
+import com.innovactions.incident.adapter.outbound.persistence.MessagesJpaRepository;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
-import com.innovactions.incident.port.outbound.ConversationRepositoryPort;
+import com.innovactions.incident.domain.model.Incident;
+import com.innovactions.incident.domain.model.Severity;
+import com.innovactions.incident.domain.model.Status;
+import com.innovactions.incident.port.outbound.IncidentPersistencePort;
+import jakarta.transaction.Transactional;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +22,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ConversationContextService {
 
-  private final ConversationRepositoryPort conversationRepository;
+  private static final Status ACTIVE_STATUS = Status.OPEN;
+  private final IncidentPersistencePort incidentPersistencePort;
+  private final MessagesJpaRepository messagesJpaRepository;
 
   /**
    * Finds and updates a valid conversation context for a user.
@@ -21,29 +32,70 @@ public class ConversationContextService {
    * <p>Uses {@link #hasActiveContext(CreateIncidentCommand)} to check if the context Returns an
    * {@link UpdateIncidentCommand} if the context exists and is not expired.
    */
+  @Transactional
   public UpdateIncidentCommand findValidUpdateContext(CreateIncidentCommand command) {
-    var context = conversationRepository.findActiveByUser(command.reporterId());
-    if (context.isEmpty()) {
+    // Step 1 - reporter should have at least one open incident
+    if (!hasActiveContext(command)) {
       return null;
     }
-    var ctx = context.get();
-    if (hasActiveContext(command)) {
 
-      conversationRepository.update(
-          ctx.userId(), ctx.incidentId(), ctx.channelId(), command.timestamp());
+    // Step 2 - fetch all open incident from the reporter
+    var incidents =
+        incidentPersistencePort.findAllActiveByReporter(command.reporterId(), ACTIVE_STATUS);
 
-      return UpdateIncidentCommand.builder()
-          .channelId(context.get().channelId())
-          .message(command.message())
-          .updatedAt(command.timestamp())
-          .build();
+    // TODO: Steps 3 and 4 should eventually be replaced by AI selecting the correct conversation.
+    // NOTE: Match the appropriate incident by comparing persisted aiSummary values or message
+    // history.
+    // Step 3 - Get the latest Incident from the user
+    var latest =
+        incidents.stream().max(Comparator.comparing(IncidentEntity::getCreatedAt)).orElse(null);
+
+    if (latest == null) {
+      log.info(
+          "No open incidents found for reporter {}, new incident required", command.reporterId());
+      return null;
     }
-    return null;
+
+    // Step 4 - Check expiration (5 minutes window)
+    Instant now = Instant.now();
+    boolean expired = now.isAfter(latest.getCreatedAt().plus(Duration.ofMinutes(10)));
+
+    if (expired) {
+      log.info(
+          "Latest incident expired for reporter {}, new incident required", command.reporterId());
+      return null;
+    }
+
+    // Step 5 - Update incident add follow-up message
+    MessageEntity messageEntity =
+        MessageEntity.builder().incident(latest).content(command.message()).sentAt(now).build();
+
+    messagesJpaRepository.save(messageEntity);
+    log.info(
+        "Updated context for user: id={}, reporterId={}, status={}, createdAt={}",
+        latest.getId(),
+        latest.getCreatedAt(),
+        latest.getStatus(),
+        latest.getCreatedAt());
+
+    return UpdateIncidentCommand.builder()
+        .channelId(latest.getSlackChannelId())
+        .message(command.message())
+        .updatedAt(command.timestamp())
+        .build();
   }
 
-  public void saveNewIncident(CreateIncidentCommand command, String channelId) {
-    conversationRepository.saveNew(
-        command.reporterId(), "INCIDENT-" + command.timestamp(), channelId, command.timestamp());
+  public void saveNewIncident(CreateIncidentCommand command, String channelId, Severity severity) {
+
+    Incident incident =
+        new Incident(
+            command.reporterId(),
+            command.reporterName(),
+            command.message(),
+            severity,
+            "Developer" // or any default logic for now
+            );
+    incidentPersistencePort.saveNewIncident(incident, channelId);
   }
 
   /**
@@ -51,19 +103,15 @@ public class ConversationContextService {
    * not older than 24 hours.
    */
   public boolean hasActiveContext(CreateIncidentCommand command) {
-    // Find user's active conversation (if any)
-    var context = conversationRepository.findActiveByUser(command.reporterId());
-    if (context.isEmpty()) {
+    // Check user's active(Status = open) conversation (if any)
+    boolean exists = incidentPersistencePort.existsByReporter(command.reporterId(), ACTIVE_STATUS);
+
+    if (!exists) {
       log.debug("No active context found for {}", command.reporterId());
       return false;
     }
 
-    var ctx = context.get();
-    // Check if the last message was more than 24 hours ago
-    boolean expired = command.timestamp().isAfter(ctx.lastMessageAt().plus(Duration.ofHours(24)));
-
-    boolean active = !expired;
-    log.debug("Active context for {} → {}", ctx.userId(), active);
-    return active;
+    log.info("Reporter {} DOES have a previous incident", command.reporterId());
+    return true;
   }
 }
