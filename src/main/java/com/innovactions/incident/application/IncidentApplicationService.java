@@ -5,6 +5,7 @@ import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.model.Severity;
+import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
@@ -34,10 +35,8 @@ public class IncidentApplicationService implements IncidentInboundPort {
    */
   @Override
   public void reportIncident(CreateIncidentCommand command) {
-    // is the user updating an existing incident?
-    UpdateIncidentCommand updateCommand = conversationContextService.findValidUpdateContext(command);
-    if (updateCommand != null) {
-      // its an update
+    boolean updated = updateExistingIncident(command);
+    if (updated) {
       return;
     }
 
@@ -75,7 +74,6 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     // If it's not an update return
     if (updateCommand == null) {
-      broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
       log.info(
           "No valid update context found for reporter {} — starting new incident flow.",
           command.reporterId());
