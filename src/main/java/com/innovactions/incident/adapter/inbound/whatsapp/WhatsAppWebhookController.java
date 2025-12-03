@@ -4,6 +4,7 @@ import com.innovactions.incident.adapter.inbound.whatsapp.mapper.WhatsAppInciden
 import com.innovactions.incident.adapter.outbound.AI.GeminiIncidentDetector;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,20 +69,16 @@ public class WhatsAppWebhookController {
     try {
       log.debug("Incoming WhatsApp webhook received with {} entries", payload.getEntry().size());
 
-        String messageText = "";
+      List<WhatsAppPayload.Message> messages = List.of();
 
-        try {
-            var msg = payload.getEntry().getFirst()
-                    .getChanges().getFirst()
-                    .getValue().getMessages().getFirst();
+      try {
+        messages = payload.getEntry().getFirst().getChanges().getFirst().getValue().getMessages();
 
-            if (msg.getText() != null) {
-                messageText = msg.getText().getBody();
-            }
-        } catch (Exception ignored) {}
+      } catch (Exception ignored) {
+      }
 
       GeminiIncidentDetector detector = new GeminiIncidentDetector();
-      boolean isIncident = detector.isIncident(messageText);
+      boolean isIncident = detector.isIncident(messages.toString());
 
       if (isIncident) {
         CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);

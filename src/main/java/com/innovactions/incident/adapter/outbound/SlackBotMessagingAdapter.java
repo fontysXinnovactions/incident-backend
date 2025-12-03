@@ -1,10 +1,10 @@
 package com.innovactions.incident.adapter.outbound;
 
-import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
@@ -44,9 +44,7 @@ public class SlackBotMessagingAdapter implements BotMessagingPort {
         // If caller supplied both text and blocks, ensure the text is visible by prepending
         // a "section" block. Slack ignores the top-level text when blocks are present.
         final String effectiveBlocks =
-            (text != null && !text.isBlank())
-                ? prependTextSection(blocksJson, text)
-                : blocksJson;
+            (text != null && !text.isBlank()) ? prependTextSection(blocksJson, text) : blocksJson;
         response =
             Slack.getInstance()
                 .methods(botToken)
