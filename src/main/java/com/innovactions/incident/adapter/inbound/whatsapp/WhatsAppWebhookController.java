@@ -3,10 +3,9 @@ package com.innovactions.incident.adapter.inbound.whatsapp;
 import com.innovactions.incident.adapter.inbound.whatsapp.mapper.WhatsAppIncidentCommandMapper;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
+import com.innovactions.incident.port.outbound.IncidentDetectorPort;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.innovactions.incident.port.outbound.IncidentDetectorPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,14 +76,16 @@ public class WhatsAppWebhookController {
       try {
         messages = payload.getEntry().getFirst().getChanges().getFirst().getValue().getMessages();
 
-      } catch (Exception ignored) {}
+      } catch (Exception ignored) {
+      }
 
-        String messageText = messages.stream()
-                .map(m -> m.getText() != null ? m.getText().getBody() : "")
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.joining("\n"));
+      String messageText =
+          messages.stream()
+              .map(m -> m.getText() != null ? m.getText().getBody() : "")
+              .filter(s -> !s.isEmpty())
+              .collect(Collectors.joining("\n"));
 
-        boolean isIncident = incidentDetectorPort.isIncident(messageText);
+      boolean isIncident = incidentDetectorPort.isIncident(messageText);
 
       if (isIncident) {
         CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
