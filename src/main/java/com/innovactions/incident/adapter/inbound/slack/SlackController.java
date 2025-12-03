@@ -111,7 +111,7 @@ public class SlackController {
 
     // is user admin?
     boolean isAdmin = userInfoPort.userIsAdmin(user_id);
-    log.info("User is admin: {}", isAdmin);
+    log.debug("User is admin: {}", isAdmin);
 
     if (!isAdmin) {
       return "❌ You are not authorized to launch this command.";
