@@ -13,8 +13,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/slack/manager")
@@ -171,7 +171,7 @@ public class SlackController {
       String reporterId =
           reporterEncrypted != null ? encryptionAdapter.decrypt(reporterEncrypted) : "unknown";
       String reporterDisplay = "unknown".equals(reporterId) ? reporterId : "<@" + reporterId + ">";
-      
+
       String assignee =
           incident.getAssignee() == null || incident.getAssignee().isBlank()
               ? "Pending"
@@ -186,15 +186,11 @@ public class SlackController {
       sb.append(
           String.format(
               "  *Created:* %s\n",
-              incident
-                  .getCreatedAt()
-                  .atZone(java.time.ZoneId.systemDefault())
-                  .format(formatter)));
+              incident.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).format(formatter)));
 
       String summary = incident.getSummary();
       if (summary != null) {
-        String preview =
-            summary.length() > 100 ? summary.substring(0, 100) + "..." : summary;
+        String preview = summary.length() > 100 ? summary.substring(0, 100) + "..." : summary;
         sb.append(String.format("  *Summary:* %s\n", preview));
       }
 
@@ -204,4 +200,3 @@ public class SlackController {
     return sb.toString();
   }
 }
-
