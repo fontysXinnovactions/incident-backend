@@ -8,9 +8,10 @@ import org.junit.jupiter.api.Test;
 class StatusTest {
 
   @Test
-  @DisplayName("should contain exactly OPEN and RESOLVED")
+  @DisplayName("should contain all defined statuses in order")
   void shouldContainExpectedValues() {
-    assertThat(Status.values()).containsExactly(Status.OPEN, Status.RESOLVED);
+    assertThat(Status.values())
+        .containsExactly(Status.OPEN, Status.ASSIGNED, Status.RESOLVED, Status.DISMISSED);
   }
 
   @Test

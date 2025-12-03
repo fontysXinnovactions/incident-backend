@@ -70,10 +70,10 @@ class IncidentApplicationServiceTest {
 
       // Then
       InOrder inOrder = inOrder(contextService, classifier, incidentService, broadcaster);
+      // First attempt to treat it as an update
       inOrder.verify(contextService).findValidUpdateContext(command);
-      //        inOrder.verify(contextService).hasActiveContext(command);
-      inOrder.verify(broadcaster).warnUserOfUnlinkedIncident("user-1");
 
+      // Then fall back to creating a new incident flow
       inOrder.verify(classifier).classify("Database is down");
       inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
       inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
@@ -138,16 +138,17 @@ class IncidentApplicationServiceTest {
     void shouldStartNewFlowIfNoValidUpdateContext() {
       // Given
       var createCmd = mock(CreateIncidentCommand.class);
-      when(createCmd.reporterId()).thenReturn("U12345"); // Add this
+      when(createCmd.reporterId()).thenReturn("U12345");
       when(contextService.findValidUpdateContext(createCmd)).thenReturn(null);
 
       // When
-      appService.updateExistingIncident(createCmd);
+      boolean result = appService.updateExistingIncident(createCmd);
 
       // Then
       verify(contextService).findValidUpdateContext(createCmd);
-      verify(broadcaster).warnUserOfUnlinkedIncident("U12345");
       verifyNoInteractions(incidentService);
+      verifyNoInteractions(broadcaster); // Remove the warnUserOfUnlinkedIncident verification
+      assert !result; // Should return false
     }
 
     @Test
