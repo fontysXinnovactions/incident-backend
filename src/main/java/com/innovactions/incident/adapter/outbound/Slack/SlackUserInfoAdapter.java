@@ -33,7 +33,7 @@ public class SlackUserInfoAdapter implements UserInfoPort {
       }
       return res.getUser().isAdmin();
     } catch (IOException | SlackApiException e) {
-      log.error("Error calling users.list for {}: {}", userId, e.getMessage(), e);
+      log.error("Error calling users.info for {}: {}", userId, e.getMessage(), e);
       return false;
     }
   }
