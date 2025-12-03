@@ -1,7 +1,6 @@
 package com.innovactions.incident.adapter.inbound.whatsapp;
 
 import com.innovactions.incident.adapter.inbound.whatsapp.mapper.WhatsAppIncidentCommandMapper;
-import com.innovactions.incident.adapter.outbound.AI.GeminiIncidentDetector;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import java.util.List;

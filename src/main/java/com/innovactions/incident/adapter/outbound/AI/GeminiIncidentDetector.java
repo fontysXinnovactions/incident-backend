@@ -28,7 +28,7 @@ public class GeminiIncidentDetector implements IncidentDetectorPort {
     String prompt =
         """
                 You are an incident triage assistant.
-                Decide if the following message describes a real INCIDENT or not.
+                Decide if the following messages describes a real INCIDENT or not.
 
                 Definition:
                 - INCIDENT: message reports a problem, outage, bug, failure, security issue, or something not working as expected.
@@ -36,7 +36,7 @@ public class GeminiIncidentDetector implements IncidentDetectorPort {
 
                 Return exactly one word: INCIDENT or NOT_INCIDENT.
 
-                Message:
+                Messages:
                 ---
                 %s
                 ---
