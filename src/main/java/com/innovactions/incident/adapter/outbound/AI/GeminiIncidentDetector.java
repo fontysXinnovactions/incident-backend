@@ -2,6 +2,7 @@ package com.innovactions.incident.adapter.outbound.AI;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
+import com.innovactions.incident.port.outbound.IncidentDetectorPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GeminiIncidentDetector {
+public class GeminiIncidentDetector implements IncidentDetectorPort {
 
   private final Client client;
 

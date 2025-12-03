@@ -5,6 +5,9 @@ import com.innovactions.incident.adapter.outbound.AI.GeminiIncidentDetector;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.innovactions.incident.port.outbound.IncidentDetectorPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class WhatsAppWebhookController {
 
   private final IncidentInboundPort incidentInboundPort;
+  private final IncidentDetectorPort incidentDetectorPort;
 
   /** The 'verify' token from the Meta Developer dashboard. */
   @Value("${whatsapp.verifyToken}")
@@ -74,11 +78,14 @@ public class WhatsAppWebhookController {
       try {
         messages = payload.getEntry().getFirst().getChanges().getFirst().getValue().getMessages();
 
-      } catch (Exception ignored) {
-      }
+      } catch (Exception ignored) {}
 
-      GeminiIncidentDetector detector = new GeminiIncidentDetector();
-      boolean isIncident = detector.isIncident(messages.toString());
+        String messageText = messages.stream()
+                .map(m -> m.getText() != null ? m.getText().getBody() : "")
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining("\n"));
+
+        boolean isIncident = incidentDetectorPort.isIncident(messageText);
 
       if (isIncident) {
         CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
