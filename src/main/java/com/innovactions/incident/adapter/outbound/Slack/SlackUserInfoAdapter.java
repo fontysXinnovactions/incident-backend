@@ -38,5 +38,3 @@ public class SlackUserInfoAdapter implements UserInfoPort {
     }
   }
 }
-
-
