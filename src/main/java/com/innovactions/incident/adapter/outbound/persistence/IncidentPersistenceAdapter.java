@@ -13,6 +13,9 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,5 +107,31 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
 
     incident.setStatus(newStatus);
     incidentJpaRepository.save(incident);
+  }
+
+  @Override
+  public List<IncidentEntity> findAllByStatus(Status status) {
+    if (status == Status.RESOLVED) {
+      PageRequest pageRequest = PageRequest.of(0, 8, Sort.by("createdAt").descending());
+      return incidentJpaRepository.findAllByStatus(status, pageRequest);
+    }
+    return incidentJpaRepository.findAllByStatus(status, Pageable.unpaged());
+  }
+
+  @Override
+  public Optional<IncidentEntity> assignToDeveloper(UUID incidentId, String developerSlackId) {
+    Optional<IncidentEntity> entityOpt = incidentJpaRepository.findById(incidentId);
+    if (entityOpt.isEmpty()) {
+      log.warn("Attempted to assign non-existent incident: {}", incidentId);
+      return Optional.empty();
+    }
+
+    IncidentEntity entity = entityOpt.get();
+    entity.setAssignee(developerSlackId);
+    entity.setStatus(Status.ASSIGNED);
+    incidentJpaRepository.save(entity);
+
+    log.info("Assigned incident {} to developer {}", incidentId, developerSlackId);
+    return Optional.of(entity);
   }
 }

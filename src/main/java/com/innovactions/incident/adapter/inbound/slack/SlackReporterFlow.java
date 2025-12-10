@@ -5,6 +5,7 @@ import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
+import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.slack.api.bolt.App;
 import com.slack.api.model.event.MessageEvent;
 import java.time.Instant;
@@ -24,6 +25,7 @@ public class SlackReporterFlow {
   private final PendingReportState pendingReportState;
   private final IncidentInboundPort incidentInboundPort;
   private final BotMessagingPort reporterBotMessagingPort;
+  private final IncidentBroadcasterPort broadcaster;
 
   public void register(App app) {
     // report_bug --> mark pending and prompt for details
@@ -129,7 +131,10 @@ public class SlackReporterFlow {
                             text,
                             Instant.now(),
                             Platform.SLACK);
-                    incidentInboundPort.updateExistingIncident(updateCommand);
+                    boolean updated = incidentInboundPort.updateExistingIncident(updateCommand);
+                    if (!updated) {
+                      broadcaster.warnUserOfUnlinkedIncident(updateCommand.reporterId());
+                    }
                   } catch (Exception e) {
                     // pass
                   } finally {

@@ -47,6 +47,6 @@ public class IncidentService {
   }
 
   private String assign(String message) {
-    return "Bob";
+    return "Pending";
   }
 }

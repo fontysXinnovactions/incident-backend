@@ -56,9 +56,6 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     // invite developer to the channel
     channelAdministrationPort.inviteUsers(channelId, List.of(developerUserId));
 
-    // send incident summary to the new channel
-    managerBotMessagingPort.sendMessage(channelId, incident.summary());
-
     // post incident summary with actions to the new channel
     managerBotMessagingPort.sendMessageWithBlocks(
         channelId, incident.summary(), IncidentActionBlocks.acknowledgeDismissButtons());

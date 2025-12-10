@@ -48,7 +48,8 @@ class IncidentServiceTest {
       assertThat(result.getReporterName()).isEqualTo("Alice");
       assertThat(result.getDetails()).isEqualTo("Database outage");
       assertThat(result.getSeverity()).isEqualTo(Severity.MAJOR);
-      assertThat(result.getAssignee()).isEqualTo("Bob");
+      // Default assignee is now 'Pending' until explicitly assigned
+      assertThat(result.getAssignee()).isEqualTo("Pending");
       assertThat(result.getId()).isNotNull(); // UUID auto-generated
     }
 
@@ -132,7 +133,8 @@ class IncidentServiceTest {
       assertThat(updated.getReporterId()).isEqualTo("rep-123");
       assertThat(updated.getReporterName()).isEqualTo("Alice");
       assertThat(updated.getSeverity()).isEqualTo(Severity.MINOR);
-      assertThat(updated.getAssignee()).isEqualTo("Bob");
+      // Default assignee is now 'Pending' until explicitly assigned
+      assertThat(updated.getAssignee()).isEqualTo("Pending");
       assertThat(updated.getDetails()).isEqualTo("Updated details");
     }
 

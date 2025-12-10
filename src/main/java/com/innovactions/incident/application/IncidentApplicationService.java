@@ -34,9 +34,10 @@ public class IncidentApplicationService implements IncidentInboundPort {
    */
   @Override
   public void reportIncident(CreateIncidentCommand command) {
-
     boolean updated = updateExistingIncident(command);
-    if (updated) return;
+    if (updated) {
+      return;
+    }
 
     Severity severity = severityClassifier.classify(command.message());
 
@@ -72,7 +73,6 @@ public class IncidentApplicationService implements IncidentInboundPort {
 
     // If it's not an update return
     if (updateCommand == null) {
-      broadcaster.warnUserOfUnlinkedIncident(command.reporterId());
       log.info(
           "No valid update context found for reporter {} — starting new incident flow.",
           command.reporterId());
