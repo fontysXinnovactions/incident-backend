@@ -29,8 +29,14 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
   @Transactional
   @Override
   public void saveNewIncident(Incident incident, String channelId) {
-    String encryptedReporterId = encryptionAdapter.encrypt(incident.getReporterId());
-    // checks if reporter exists before adding new  reporter
+      final String encryptedReporterId;
+      try {
+          encryptedReporterId = encryptionAdapter.encrypt(incident.getReporterId());
+      } catch (Exception e) {
+          //FIXME: return appropriate notification
+          throw new RuntimeException(e);
+      }
+      // checks if reporter exists before adding new  reporter
     ReporterEntity reporterEntity =
         reporterJpaRepository
             .findByReporterId(encryptedReporterId)
@@ -74,14 +80,26 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
    */
   @Override
   public List<IncidentEntity> findAllActiveByReporter(String reporterId, Status status) {
-    String encrypted = encryptionAdapter.encrypt(reporterId);
-    return incidentJpaRepository.findAllByReporter_ReporterIdAndStatus(encrypted, status);
+      String encrypted = null;
+      try {
+          encrypted = encryptionAdapter.encrypt(reporterId);
+      } catch (Exception e) {
+          //FIXME: return appropriate notification
+          throw new RuntimeException(e);
+      }
+      return incidentJpaRepository.findAllByReporter_ReporterIdAndStatus(encrypted, status);
   }
 
   @Override
   public boolean existsByReporter(String reporterId, Status status) {
-    String encryptedReporterId = encryptionAdapter.encrypt(reporterId);
-    return incidentJpaRepository.existsByReporter_ReporterIdAndStatus(encryptedReporterId, status);
+      String encryptedReporterId = null;
+      try {
+          encryptedReporterId = encryptionAdapter.encrypt(reporterId);
+      } catch (Exception e) {
+          //FIXME: return appropriate notification
+          throw new RuntimeException(e);
+      }
+      return incidentJpaRepository.existsByReporter_ReporterIdAndStatus(encryptedReporterId, status);
   }
 
   @Override

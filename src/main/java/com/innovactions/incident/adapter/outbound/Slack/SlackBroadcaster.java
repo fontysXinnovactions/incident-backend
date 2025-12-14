@@ -4,9 +4,9 @@ import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
-import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
+import com.innovactions.incident.port.outbound.EncryptionPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,7 +23,8 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
   private final BotMessagingPort managerBotMessagingPort;
   private final BotMessagingPort reporterBotMessagingPort;
   private final ChannelAdministrationPort channelAdministrationPort;
-  private final EncryptionService encryptionService;
+//  private final EncryptionService encryptionService;
+  private final EncryptionPort encryptionPort;
 
   @Override
   public String initSlackDeveloperWorkspace(Incident incident, Platform platform) {
@@ -41,7 +42,7 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     String reporterId = incident.getReporterId();
     String encryptedReporterId;
     try {
-      encryptedReporterId = encryptionService.encrypt(reporterId);
+      encryptedReporterId = encryptionPort.encrypt(reporterId);
     } catch (Exception e) {
       log.error(
           "Failed to encrypt reporter ID for incident [{}]: {}",

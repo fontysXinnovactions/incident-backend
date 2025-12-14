@@ -10,7 +10,6 @@ import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentReporterNot
 import com.innovactions.incident.adapter.outbound.SlackBotMessagingAdapter;
 import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
-import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.*;
 import com.slack.api.bolt.App;
@@ -139,14 +138,14 @@ public class SlackConfig {
       BotMessagingPort managerBotMessagingPort,
       BotMessagingPort reporterBotMessagingPort,
       ChannelAdministrationPort channelAdministrationPort,
-      EncryptionService encryptionService) {
+      EncryptionPort encryptionPort) {
     return new SlackBroadcaster(
         developerUserId,
         channelNameGenerator,
         managerBotMessagingPort,
         reporterBotMessagingPort,
         channelAdministrationPort,
-        encryptionService);
+            encryptionPort);
   }
 
   @Bean
@@ -188,7 +187,7 @@ public class SlackConfig {
   }
 
   @Bean
-  public ChannelAdministrationPort channelAdministrationPort(EncryptionService encryptionService) {
-    return new SlackChannelAdministrationAdapter(botTokenB, encryptionService);
+  public ChannelAdministrationPort channelAdministrationPort(EncryptionPort encryptionPort) {
+    return new SlackChannelAdministrationAdapter(botTokenB, encryptionPort);
   }
 }

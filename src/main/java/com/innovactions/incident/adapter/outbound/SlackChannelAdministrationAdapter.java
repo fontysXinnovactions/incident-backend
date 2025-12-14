@@ -1,7 +1,7 @@
 package com.innovactions.incident.adapter.outbound;
 
-import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
+import com.innovactions.incident.port.outbound.EncryptionPort;
 import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
@@ -19,11 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 public class SlackChannelAdministrationAdapter implements ChannelAdministrationPort {
 
   private final String botToken;
-  private final EncryptionService encryptionService;
-
-  public SlackChannelAdministrationAdapter(String botToken, EncryptionService encryptionService) {
+//  private final EncryptionService encryptionPort;
+  private final EncryptionPort  encryptionPort;
+  public SlackChannelAdministrationAdapter(String botToken, EncryptionPort encryptionPort) {
     this.botToken = botToken;
-    this.encryptionService = encryptionService;
+    this.encryptionPort = encryptionPort;
   }
 
   @Override
@@ -77,7 +77,7 @@ public class SlackChannelAdministrationAdapter implements ChannelAdministrationP
         if (parts.length >= 2) {
           String reporterId = parts[0];
           try {
-            reporterId = encryptionService.decrypt(reporterId);
+            reporterId = encryptionPort.decrypt(reporterId);
           } catch (Exception e) {
             log.error(
                 "Failed to decrypt reporter ID for channel {}: {}", channelId, e.getMessage(), e);

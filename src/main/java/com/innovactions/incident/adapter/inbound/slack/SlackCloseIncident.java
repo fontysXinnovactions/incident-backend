@@ -4,8 +4,9 @@ import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.slack.api.bolt.context.builtin.SlashCommandContext;
 import com.slack.api.bolt.request.builtin.SlashCommandRequest;
-import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class SlackCloseIncident {
@@ -30,7 +31,8 @@ public class SlackCloseIncident {
           try {
             incidentInboundPort.closeIncident(command);
           } catch (Exception e) {
-            log.error("Error processing incident closure: {}", e.getMessage(), e);
+
+              log.error("Error processing incident closure: {}", e.getMessage(), e);
           }
         });
   }
