@@ -1,15 +1,42 @@
 package com.innovactions.incident.port.outbound;
 
 public interface PendingReportStatePort {
-  void markPending(String userId);
 
-  boolean isPending(String userId);
+    /**
+     * Marks that the user is in the process of creating a report
+     * @param userId
+     */
+    void markPending(String userId);
 
-  void clearPending(String userId);
+    /**
+     * Checks if the user is in the process of creating a report
+     * @param userId
+     * @return
+     */
+    boolean isPending(String userId);
 
-  void markUpdating(String userId);
+    /**
+     * Clears the pending state for the user
+     * @param userId
+     */
+    void clearPending(String userId);
 
-  boolean isUpdating(String userId);
+    /**
+     * Marks that the user is in the process of updating a report
+     * @param userId
+     */
+    void markUpdating(String userId);
 
-  void clearUpdating(String userId);
+    /**
+     * Checks if the user is in the process of updating a report
+     * @param userId
+     * @return
+     */
+    boolean isUpdating(String userId);
+
+    /**
+     * Clears the updating state for the user
+     * @param userId
+     */
+    void clearUpdating(String userId);
 }

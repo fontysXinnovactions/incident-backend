@@ -111,14 +111,12 @@ public class SlackManagerActions {
           }
         });
 
-    // Handle modal submission
     managerApp.viewSubmission(
         "ask_more_info_modal",
         (req, ctx) -> {
           var view = req.getPayload().getView();
           String channelId = view.getPrivateMetadata();
 
-          // Extract the input value from the state
           var stateValues = view.getState().getValues();
           String developerMessage = stateValues.get("details_block").get("ask_more_info_action").getValue();
 
@@ -126,8 +124,6 @@ public class SlackManagerActions {
               channelAdministrationPort.extractReporterIdFromTopic(channelId);
           if (reporterInfo != null) {
             broadcaster.askUserForMoreInfo(reporterInfo.reporterId, developerMessage);
-            // broadcaster.sendAdditionalDetailsToReporter(reporterInfo.reporterId,
-            // ctx.getRequestUserId(), developerMessage);
 
             managerBotMessagingPort.sendMessage(
                 channelId,
@@ -138,7 +134,7 @@ public class SlackManagerActions {
                 "⚠️ Unable to retrieve reporter information. Cannot send additional details.");
           }
 
-          return ctx.ack(); // acknowledge the submission
+          return ctx.ack();
         });
   }
 }
