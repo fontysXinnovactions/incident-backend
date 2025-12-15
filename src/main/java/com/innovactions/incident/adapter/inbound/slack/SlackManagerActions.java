@@ -120,14 +120,14 @@ public class SlackManagerActions {
 
           // Extract the input value from the state
           var stateValues = view.getState().getValues();
-          String details = stateValues.get("details_block").get("ask_more_info_action").getValue();
+          String developerMessage = stateValues.get("details_block").get("ask_more_info_action").getValue();
 
           ReporterInfo reporterInfo =
               channelAdministrationPort.extractReporterIdFromTopic(channelId);
           if (reporterInfo != null) {
-            broadcaster.askUserForMoreInfo(reporterInfo.reporterId, details);
+            broadcaster.askUserForMoreInfo(reporterInfo.reporterId, developerMessage);
             // broadcaster.sendAdditionalDetailsToReporter(reporterInfo.reporterId,
-            // ctx.getRequestUserId(), details);
+            // ctx.getRequestUserId(), developerMessage);
 
             managerBotMessagingPort.sendMessage(
                 channelId,
