@@ -75,15 +75,22 @@ public final class IncidentActionBlocks {
             "blocks",
                 List.of(
                     Map.of(
-                        "type", "input",
-                        "block_id", "details_block",
-                        "label", Map.of("type", "plain_text", "text", "Additional Comments", "emoji", true),
+                        "type",
+                        "input",
+                        "block_id",
+                        "details_block",
+                        "label",
+                        Map.of("type", "plain_text", "text", "Additional Comments", "emoji", true),
                         "element",
-                            Map.of(
-                                "type", "plain_text_input",
-                                "action_id", "ask_more_info_action",
-                                "multiline", true,
-                                "placeholder", Map.of("type", "plain_text", "text", "Type your message here..."))))));
+                        Map.of(
+                            "type",
+                            "plain_text_input",
+                            "action_id",
+                            "ask_more_info_action",
+                            "multiline",
+                            true,
+                            "placeholder",
+                            Map.of("type", "plain_text", "text", "Type your message here..."))))));
   }
 
   private static Map<String, Object> button(String text, String actionId, String style) {

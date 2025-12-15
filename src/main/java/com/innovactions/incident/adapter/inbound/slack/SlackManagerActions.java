@@ -100,9 +100,8 @@ public class SlackManagerActions {
             // open a modal with input and submit button
             var modalJson = IncidentActionBlocks.askMoreInfoModal(channel);
             ctx.client()
-                .viewsOpen(r -> r
-                    .triggerId(req.getPayload().getTriggerId())
-                    .viewAsString(modalJson));
+                .viewsOpen(
+                    r -> r.triggerId(req.getPayload().getTriggerId()).viewAsString(modalJson));
             return ctx.ack();
           } else {
             managerBotMessagingPort.sendMessage(
@@ -121,15 +120,14 @@ public class SlackManagerActions {
 
           // Extract the input value from the state
           var stateValues = view.getState().getValues();
-          String details = stateValues
-              .get("details_block")
-              .get("ask_more_info_action")
-              .getValue();
+          String details = stateValues.get("details_block").get("ask_more_info_action").getValue();
 
-          ReporterInfo reporterInfo = channelAdministrationPort.extractReporterIdFromTopic(channelId);
+          ReporterInfo reporterInfo =
+              channelAdministrationPort.extractReporterIdFromTopic(channelId);
           if (reporterInfo != null) {
             broadcaster.askUserForMoreInfo(reporterInfo.reporterId, details);
-            // broadcaster.sendAdditionalDetailsToReporter(reporterInfo.reporterId, ctx.getRequestUserId(), details);
+            // broadcaster.sendAdditionalDetailsToReporter(reporterInfo.reporterId,
+            // ctx.getRequestUserId(), details);
 
             managerBotMessagingPort.sendMessage(
                 channelId,

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * Use-case service for manager Slack slash commands (/view, /assign).
  *
  * <p>Keeps Slack-specific logic (authorization, parsing, formatting) in the inbound adapter layer
- * while delegating persistence to ports.</p>
+ * while delegating persistence to ports.
  */
 @Slf4j
 @Component
@@ -109,9 +109,7 @@ public class SlackManagerSlashService {
 
     IncidentEntity incident = incidentOpt.get();
     return String.format(
-        "✅ Successfully assigned incident `%s` to <%s>\n"
-            + "• *Status:* %s\n"
-            + "• *Severity:* %s",
+        "✅ Successfully assigned incident `%s` to <%s>\n" + "• *Status:* %s\n" + "• *Severity:* %s",
         incident.getId(), developerId, incident.getStatus(), incident.getSeverity());
   }
 

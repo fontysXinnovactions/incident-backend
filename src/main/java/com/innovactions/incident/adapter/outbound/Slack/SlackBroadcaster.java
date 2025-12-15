@@ -108,7 +108,10 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
         reporterId,
         "👋 Hi! A developer is working on the incident you reported. "
             + "They have sent the following message:\n\n"
-            + '"' + details + '"' + "\n\n"
+            + '"'
+            + details
+            + '"'
+            + "\n\n"
             + "You can reply by clicking the 'Provide Info' button below this chat.\n"
             + "Please reply with any additional information, or steps to reproduce the problem.\n\n"
             + "Thank you for your cooperation!",
