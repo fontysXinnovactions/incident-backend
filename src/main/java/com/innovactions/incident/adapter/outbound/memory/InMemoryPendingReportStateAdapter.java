@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 public class InMemoryPendingReportStateAdapter implements PendingReportStatePort {
   private final Map<String, Boolean> pending = new ConcurrentHashMap<>();
   private final Map<String, Boolean> updating = new ConcurrentHashMap<>();
-  private final Map<String, Boolean> devAskDetails = new ConcurrentHashMap<>();
 
   @Override
   public void markPending(String userId) {
