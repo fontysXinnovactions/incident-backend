@@ -118,7 +118,8 @@ public class SlackManagerActions {
           String channelId = view.getPrivateMetadata();
 
           var stateValues = view.getState().getValues();
-          String developerMessage = stateValues.get("details_block").get("ask_more_info_action").getValue();
+          String developerMessage =
+              stateValues.get("details_block").get("ask_more_info_action").getValue();
 
           ReporterInfo reporterInfo =
               channelAdministrationPort.extractReporterIdFromTopic(channelId);

@@ -67,8 +67,8 @@ public final class IncidentActionBlocks {
    * Creates a Slack modal JSON string prompting the user to provide additional information.
    *
    * <p>The provided {@code channelId} is stored in the modal's {@code private_metadata} field,
-   * allowing it to be retrieved when the modal is submitted. This is useful for associating
-   * the modal submission with the correct Slack channel.
+   * allowing it to be retrieved when the modal is submitted. This is useful for associating the
+   * modal submission with the correct Slack channel.
    *
    * @param channelId the ID of the Slack channel, stored as private metadata for later retrieval
    * @return a JSON string representing the Slack modal
