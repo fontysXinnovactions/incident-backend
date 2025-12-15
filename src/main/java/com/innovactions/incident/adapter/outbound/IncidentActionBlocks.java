@@ -63,6 +63,29 @@ public final class IncidentActionBlocks {
                 List.of(button("Leave Channel", "leave_channel", "danger")))));
   }
 
+  public static String askMoreInfoModal(String channelId) {
+    return toJson(
+        Map.of(
+            "type", "modal",
+            "callback_id", "ask_more_info_modal",
+            "private_metadata", channelId,
+            "title", Map.of("type", "plain_text", "text", "Ask for More Info"),
+            "submit", Map.of("type", "plain_text", "text", "Send"),
+            "close", Map.of("type", "plain_text", "text", "Cancel"),
+            "blocks",
+                List.of(
+                    Map.of(
+                        "type", "input",
+                        "block_id", "details_block",
+                        "label", Map.of("type", "plain_text", "text", "Additional Comments", "emoji", true),
+                        "element",
+                            Map.of(
+                                "type", "plain_text_input",
+                                "action_id", "ask_more_info_action",
+                                "multiline", true,
+                                "placeholder", Map.of("type", "plain_text", "text", "Type your message here..."))))));
+  }
+
   private static Map<String, Object> button(String text, String actionId, String style) {
     var button = new java.util.HashMap<String, Object>();
     button.put("type", "button");
