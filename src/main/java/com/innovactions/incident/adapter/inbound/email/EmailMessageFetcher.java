@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,13 +31,22 @@ public class EmailMessageFetcher {
   private static final Set<String> SCOPE = Set.of("https://graph.microsoft.com/.default");
 
   private String accessToken;
+  private Instant expiresAt;
 
   @PostConstruct
   public void init() {
-    this.accessToken = acquireAccessToken();
+    refreshToken();
   }
 
-  private String acquireAccessToken() {
+  private synchronized String getAccessToken() {
+    if (accessToken == null || expiresAt == null || Instant.now().isAfter(expiresAt)) {
+      log.info("🔄 Microsoft Graph token expired or missing — refreshing");
+      refreshToken();
+    }
+    return accessToken;
+  }
+
+  private void refreshToken() {
     try {
       String authority = "https://login.microsoftonline.com/" + tenantId;
 
@@ -50,11 +60,13 @@ public class EmailMessageFetcher {
 
       IAuthenticationResult result = app.acquireToken(parameters).join();
 
-      log.info("Application access token obtained from Microsoft Graph");
-      return result.accessToken();
+      this.accessToken = result.accessToken();
+      this.expiresAt = result.expiresOnDate().toInstant().minusSeconds(60);
+
+      log.info("✅ New Microsoft Graph access token acquired (expires at {})", expiresAt);
 
     } catch (Exception e) {
-      throw new RuntimeException("Error while acquiring app-only access token", e);
+      throw new RuntimeException("Error while acquiring Microsoft Graph access token", e);
     }
   }
 
@@ -68,7 +80,7 @@ public class EmailMessageFetcher {
                           + "/users/automatedincident@outlook.com/messages/"
                           + messageId
                           + "?$select=subject,from,receivedDateTime,bodyPreview"))
-              .header("Authorization", "Bearer " + accessToken)
+              .header("Authorization", "Bearer " + getAccessToken())
               .header("Accept", "application/json")
               .GET()
               .build();
@@ -78,6 +90,13 @@ public class EmailMessageFetcher {
 
       if (response.statusCode() == 200) {
         return new ObjectMapper().readValue(response.body(), EmailMessage.class);
+      }
+
+      // Token kan tussentijds ongeldig zijn geworden
+      if (response.statusCode() == 401) {
+        log.warn("⚠️ Graph returned 401 — retrying with fresh token");
+        refreshToken();
+        return fetchMessageDetails(messageId);
       }
 
       throw new RuntimeException(
