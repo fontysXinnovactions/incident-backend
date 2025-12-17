@@ -10,7 +10,8 @@ class PlatformTest {
   @Test
   @DisplayName("should contain exactly WHATSAPP, SLACK and EMAIL")
   void shouldContainExpectedValues() {
-    assertThat(Platform.values()).containsExactly(Platform.WHATSAPP, Platform.SLACK, Platform.EMAIL);
+    assertThat(Platform.values())
+        .containsExactly(Platform.WHATSAPP, Platform.SLACK, Platform.EMAIL);
   }
 
   @Test
