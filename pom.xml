@@ -124,6 +124,11 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>msal4j</artifactId>
+            <version>1.17.2</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
