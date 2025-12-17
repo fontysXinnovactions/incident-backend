@@ -66,7 +66,7 @@ class IncidentApplicationServiceTest {
                 ));
 
       var fakeIncident = mock(Incident.class);
-      when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
+      when(incidentService.createIncident(command, Severity.MAJOR, "Database is down")).thenReturn(fakeIncident);
       when(broadcaster.initSlackDeveloperWorkspace(fakeIncident, command.platform()))
           .thenReturn("channel-123");
 
@@ -80,7 +80,7 @@ class IncidentApplicationServiceTest {
 
       // Then fall back to creating a new incident flow
       inOrder.verify(classifier).classify("Database is down");
-      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
+      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR, "Database is down");
       inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
       inOrder.verify(contextService).saveNewIncident(command, "channel-123", Severity.MAJOR);
 

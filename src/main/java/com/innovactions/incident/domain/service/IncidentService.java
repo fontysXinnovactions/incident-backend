@@ -11,12 +11,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class IncidentService {
 
-  public Incident createIncident(CreateIncidentCommand command, Severity severity) {
+  public Incident createIncident(CreateIncidentCommand command, Severity severity, String aiSummary) {
     String assignee = assign(command.message());
 
     Incident incident =
         new Incident(
-            command.reporterId(), command.reporterName(), command.message(), severity, assignee);
+            command.reporterId(),
+                command.reporterName(),
+                command.message(),
+                severity,
+                assignee
+        );
+
+    incident.setAiSummary(aiSummary);
 
     log.info("Created new incident: {}", incident.getId());
     return incident;

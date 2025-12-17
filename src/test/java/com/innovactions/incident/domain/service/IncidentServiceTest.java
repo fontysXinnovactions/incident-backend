@@ -40,7 +40,7 @@ class IncidentServiceTest {
               .build();
 
       // When
-      Incident result = service.createIncident(cmd, Severity.MAJOR);
+      Incident result = service.createIncident(cmd, Severity.MAJOR, "Database outage");
 
       // Then
       assertThat(result).isNotNull();
@@ -56,7 +56,7 @@ class IncidentServiceTest {
     @Test
     @DisplayName("Should throw when given null command")
     void shouldThrowWhenCommandNull() {
-      assertThatThrownBy(() -> service.createIncident(null, Severity.MINOR))
+      assertThatThrownBy(() -> service.createIncident(null, Severity.MINOR, "Database outage"))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -74,7 +74,7 @@ class IncidentServiceTest {
               .build();
 
       // When, Then
-      assertThatThrownBy(() -> service.createIncident(cmd, null))
+      assertThatThrownBy(() -> service.createIncident(cmd, null, "Something broke"))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -92,7 +92,7 @@ class IncidentServiceTest {
               .build();
 
       // When
-      Incident result = service.createIncident(cmd, Severity.MINOR);
+      Incident result = service.createIncident(cmd, Severity.MINOR, " ");
 
       // Then
       assertThat(result).isNotNull();
