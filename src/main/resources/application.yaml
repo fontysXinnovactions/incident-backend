@@ -1,7 +1,7 @@
 spring:
   cloud.azure:
     credential:
-      managed-identity-enabled: false
+      managed-identity-enabled: true
     keyvault:
       secret:
         property-source-enabled: true
