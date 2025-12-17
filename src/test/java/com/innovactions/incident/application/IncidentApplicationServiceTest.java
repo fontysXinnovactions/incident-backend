@@ -6,6 +6,7 @@ import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
+import com.innovactions.incident.domain.model.IncidentClassification;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.service.IncidentService;
@@ -58,10 +59,12 @@ class IncidentApplicationServiceTest {
 
       //      when(contextService.hasActiveContext(command)).thenReturn(false);
       when(contextService.findValidUpdateContext(command)).thenReturn(null);
-      when(classifier.classify("Database is down")).thenReturn(Severity.MAJOR);
+      when(classifier.classify("Database is down"))
+          .thenReturn(new IncidentClassification(Severity.MAJOR, "Database is down"));
 
       var fakeIncident = mock(Incident.class);
-      when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
+      when(incidentService.createIncident(command, Severity.MAJOR, "Database is down"))
+          .thenReturn(fakeIncident);
       when(broadcaster.initSlackDeveloperWorkspace(fakeIncident, command.platform()))
           .thenReturn("channel-123");
 
@@ -75,7 +78,7 @@ class IncidentApplicationServiceTest {
 
       // Then fall back to creating a new incident flow
       inOrder.verify(classifier).classify("Database is down");
-      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
+      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR, "Database is down");
       inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
       inOrder.verify(contextService).saveNewIncident(command, "channel-123", Severity.MAJOR);
 

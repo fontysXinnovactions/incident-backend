@@ -20,6 +20,8 @@ public class Incident {
 
   @NonNull private String details;
 
+  private String aiSummary;
+
   /** List of conversation messages. */
   private final List<Message> messages = new ArrayList<>();
 

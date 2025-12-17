@@ -4,7 +4,7 @@ import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
-import com.innovactions.incident.domain.model.Severity;
+import com.innovactions.incident.domain.model.IncidentClassification;
 import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
@@ -39,11 +39,13 @@ public class IncidentApplicationService implements IncidentInboundPort {
       return;
     }
 
-    Severity severity = severityClassifier.classify(command.message());
+    IncidentClassification classification = severityClassifier.classify(command.message());
 
-    Incident incident = incidentService.createIncident(command, severity);
+    Incident incident =
+        incidentService.createIncident(
+            command, classification.severity(), classification.summary());
     String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-    conversationContextService.saveNewIncident(command, channelId, severity);
+    conversationContextService.saveNewIncident(command, channelId, classification.severity());
   }
 
   @Override
