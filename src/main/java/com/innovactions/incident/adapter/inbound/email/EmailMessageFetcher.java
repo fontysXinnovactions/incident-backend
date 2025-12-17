@@ -2,10 +2,7 @@ package com.innovactions.incident.adapter.inbound.email;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.innovactions.incident.adapter.inbound.email.model.EmailMessage;
-import com.microsoft.aad.msal4j.DeviceCode;
-import com.microsoft.aad.msal4j.DeviceCodeFlowParameters;
-import com.microsoft.aad.msal4j.IAuthenticationResult;
-import com.microsoft.aad.msal4j.PublicClientApplication;
+import com.microsoft.aad.msal4j.*;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -23,9 +20,14 @@ public class EmailMessageFetcher {
   @Value("${graph.client.id}")
   private String clientId;
 
-  private static final String AUTHORITY = "https://login.microsoftonline.com/common";
-  private static final Set<String> SCOPE = Set.of("https://graph.microsoft.com/Mail.Read");
+  @Value("${graph.client.secret}")
+  private String clientSecret;
+
+  @Value("${graph.tenant.id}")
+  private String tenantId;
+
   private static final String GRAPH_BASE = "https://graph.microsoft.com/v1.0";
+  private static final Set<String> SCOPE = Set.of("https://graph.microsoft.com/.default");
 
   private String accessToken;
 
@@ -36,19 +38,23 @@ public class EmailMessageFetcher {
 
   private String acquireAccessToken() {
     try {
-      PublicClientApplication app =
-          PublicClientApplication.builder(clientId).authority(AUTHORITY).build();
+      String authority = "https://login.microsoftonline.com/" + tenantId;
 
-      DeviceCodeFlowParameters parameters =
-          DeviceCodeFlowParameters.builder(
-                  SCOPE, (DeviceCode deviceCode) -> log.info(deviceCode.message()))
+      ConfidentialClientApplication app =
+          ConfidentialClientApplication.builder(
+                  clientId, ClientCredentialFactory.createFromSecret(clientSecret))
+              .authority(authority)
               .build();
 
+      ClientCredentialParameters parameters = ClientCredentialParameters.builder(SCOPE).build();
+
       IAuthenticationResult result = app.acquireToken(parameters).join();
-      log.info("Access token obtained from Microsoft Graph");
+
+      log.info("Application access token obtained from Microsoft Graph");
       return result.accessToken();
+
     } catch (Exception e) {
-      throw new RuntimeException("Error while receiving Microsoft Graph token", e);
+      throw new RuntimeException("Error while acquiring app-only access token", e);
     }
   }
 
@@ -59,7 +65,7 @@ public class EmailMessageFetcher {
               .uri(
                   URI.create(
                       GRAPH_BASE
-                          + "/me/messages/"
+                          + "/users/automatedincident@outlook.com/messages/"
                           + messageId
                           + "?$select=subject,from,receivedDateTime,bodyPreview"))
               .header("Authorization", "Bearer " + accessToken)
@@ -70,24 +76,15 @@ public class EmailMessageFetcher {
       HttpResponse<String> response =
           HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
-      log.error("Graph status: {}", response.statusCode());
-      log.error("Graph response: {}", response.body());
-
       if (response.statusCode() == 200) {
-        EmailMessage message = new ObjectMapper().readValue(response.body(), EmailMessage.class);
-        log.info(
-            "Parsed message: subject={}, from={}",
-            message.getSubject(),
-            message.getFrom().getEmailAddress().getAddress());
-        return message;
-      } else {
-        log.error(
-            "Graph call failed with status {} and body {}", response.statusCode(), response.body());
-        throw new RuntimeException("Graph answered with status " + response.statusCode());
+        return new ObjectMapper().readValue(response.body(), EmailMessage.class);
       }
 
+      throw new RuntimeException(
+          "Graph returned " + response.statusCode() + ": " + response.body());
+
     } catch (Exception e) {
-      throw new RuntimeException("Error while receiving email details", e);
+      throw new RuntimeException("Error while fetching email details", e);
     }
   }
 }

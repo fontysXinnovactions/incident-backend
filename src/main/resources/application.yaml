@@ -33,4 +33,8 @@ spring:
             enabled: true
 
   graph:
-    client-id: ${email-graph-client-id}
+    client:
+      id: ${graph-client-id2}
+      secret: ${graph-client-secret}
+    tenant:
+      id: ${graph-tenant-id}
