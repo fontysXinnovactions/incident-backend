@@ -2,22 +2,26 @@ package com.innovactions.incident.adapter.inbound.email;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.innovactions.incident.adapter.inbound.email.model.EmailMessage;
-import com.microsoft.aad.msal4j.*;
+import com.microsoft.aad.msal4j.DeviceCode;
+import com.microsoft.aad.msal4j.DeviceCodeFlowParameters;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.PublicClientApplication;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class EmailMessageFetcher {
 
-  @Value("${graph.client-id}")
+  @Value("${graph.client.id}")
   private String clientId;
 
   private static final String AUTHORITY = "https://login.microsoftonline.com/common";
