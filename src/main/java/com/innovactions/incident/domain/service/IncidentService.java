@@ -11,38 +11,42 @@ import org.springframework.stereotype.Service;
 @Service
 public class IncidentService {
 
-    public Incident createIncident(CreateIncidentCommand command, Severity severity) {
-        String assignee = assign(command.message());
+  public Incident createIncident(CreateIncidentCommand command, Severity severity) {
+    String assignee = assign(command.message());
 
-        Incident incident = new Incident(
-                command.reporterId(),
-                command.reporterName(),
-                command.message(),
-                severity,
-                assignee
-        );
+    Incident incident =
+        new Incident(
+            command.reporterId(), command.reporterName(), command.message(), severity, assignee);
 
-        log.info("Created new incident: {}", incident.getId());
-        return incident;
-    }
+    log.info("Created new incident: {}", incident.getId());
+    return incident;
+  }
 
-    public Incident updateIncident(UpdateIncidentCommand command) {
-        //TODO: Refactor test only
-        Incident updated = new Incident(
-                command.channelId(),      // keep the same ID
-                "ReporterName",            // TODO: preserve from original incident
-                command.message(),
-                Severity.MINOR,            // TODO: decide whether to reclassify
-                "Bob"                      // TODO: preserve original assignee
-        );
+  public Incident updateIncident(
+      UpdateIncidentCommand command, CreateIncidentCommand createCommand) {
+    String assignee = assign(command.message());
 
-        log.info("Updated incident {} with new message at {}",
-                command.channelId(), command.updatedAt());
+    Incident updated =
+        new Incident(
+            createCommand.reporterId(),
+            createCommand.reporterName(),
+            command.message(),
+            Severity.MINOR, // TODO: decide whether to reclassify
+            assignee);
 
-        return updated;
-    }
+    log.info(
+        "Updated incident {} with new message at {}", command.channelId(), command.updatedAt());
 
-    private String assign(String message) {
-        return "Bob";
-    }
+    return updated;
+  }
+
+  // Question by Bob: What is this for?
+  public Incident updateExistingIncident(CreateIncidentCommand updateCommand) {
+    // TODO: Implement logic to find and update the existing incident
+    return null;
+  }
+
+  private String assign(String message) {
+    return "Pending";
+  }
 }

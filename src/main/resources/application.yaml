@@ -1,0 +1,36 @@
+spring:
+  cloud.azure:
+    credential:
+      managed-identity-enabled: false
+    keyvault:
+      secret:
+        property-source-enabled: true
+        property-sources:
+          - endpoint: https://innovactions-secrets.vault.azure.net/
+            retry:
+              mode: exponential
+              exponential:
+                max-retries: 4
+                base-delay: PT0.0801S
+                max-delay: PT9S
+  docker:
+    compose:
+      enabled: false
+  ai:
+    vertex:
+      ai:
+        gemini:
+          project-id: ${GOOGLE_PROJECT_ID}
+          location: europe-west4
+          chat:
+            options:
+              model: gemini-1.5-flash
+              temperature: 0.2
+            enabled: true
+          embedding:
+            options:
+              model: text-embedding-004
+            enabled: true
+
+  graph:
+    client-id: ${email-graph-client-id}

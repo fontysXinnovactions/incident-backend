@@ -7,18 +7,15 @@ import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class GeminiIncidentClassifier implements SeverityClassifierPort {
 
   private final Client client;
 
-  public GeminiIncidentClassifier() {
-    // Reads GEMINI_API_KEY from environment variable
-    this.client = new Client();
+  public GeminiIncidentClassifier(String apiKey) {
+    this.client = Client.builder().apiKey(apiKey).build();
   }
 
   @Override
@@ -42,15 +39,20 @@ public class GeminiIncidentClassifier implements SeverityClassifierPort {
                 """
             .formatted(message == null ? "" : message);
 
-    GenerateContentResponse response =
-        client.models.generateContent("gemini-2.5-flash", prompt, null);
-
-    log.info("Gemini AI classified incident message '{}' as '{}'", message, response);
-
     try {
-      return Severity.valueOf(Objects.requireNonNull(response.text()).trim().toUpperCase());
-    } catch (NullPointerException e) {
-      log.warn("Could not map response '{}', falling back to MINOR", response);
+      GenerateContentResponse response =
+          client.models.generateContent("gemini-2.5-flash", prompt, null);
+
+      log.info("Gemini AI classified incident message '{}' as '{}'", message, response);
+
+      try {
+        return Severity.valueOf(Objects.requireNonNull(response.text()).trim().toUpperCase());
+      } catch (NullPointerException | IllegalArgumentException e) {
+        log.warn("Could not map response '{}', falling back to MINOR", response);
+        return Severity.MINOR;
+      }
+    } catch (Exception e) {
+      log.error("Gemini classify failed ({}). Falling back to MINOR.", e.getMessage(), e);
       return Severity.MINOR;
     }
   }

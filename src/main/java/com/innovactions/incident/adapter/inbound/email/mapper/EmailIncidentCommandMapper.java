@@ -1,9 +1,9 @@
 package com.innovactions.incident.adapter.inbound.email.mapper;
 
 import com.innovactions.incident.adapter.inbound.email.model.EmailMessage;
-import com.innovactions.incident.application.Platform;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import lombok.NoArgsConstructor;
+import com.innovactions.incident.domain.model.Platform;
 
 import java.time.Instant;
 
