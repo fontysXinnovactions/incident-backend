@@ -59,14 +59,12 @@ class IncidentApplicationServiceTest {
 
       //      when(contextService.hasActiveContext(command)).thenReturn(false);
       when(contextService.findValidUpdateContext(command)).thenReturn(null);
-        when(classifier.classify("Database is down"))
-                .thenReturn(new IncidentClassification(
-                        Severity.MAJOR,
-                        "Database is down"
-                ));
+      when(classifier.classify("Database is down"))
+          .thenReturn(new IncidentClassification(Severity.MAJOR, "Database is down"));
 
       var fakeIncident = mock(Incident.class);
-      when(incidentService.createIncident(command, Severity.MAJOR, "Database is down")).thenReturn(fakeIncident);
+      when(incidentService.createIncident(command, Severity.MAJOR, "Database is down"))
+          .thenReturn(fakeIncident);
       when(broadcaster.initSlackDeveloperWorkspace(fakeIncident, command.platform()))
           .thenReturn("channel-123");
 
