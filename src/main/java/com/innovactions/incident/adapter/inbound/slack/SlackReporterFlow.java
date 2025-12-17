@@ -6,6 +6,7 @@ import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
+import com.innovactions.incident.port.outbound.PendingReportStatePort;
 import com.slack.api.bolt.App;
 import com.slack.api.model.event.MessageEvent;
 import java.time.Instant;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SlackReporterFlow {
 
-  private final PendingReportState pendingReportState;
+  private final PendingReportStatePort pendingReportState;
   private final IncidentInboundPort incidentInboundPort;
   private final BotMessagingPort reporterBotMessagingPort;
   private final IncidentBroadcasterPort broadcaster;

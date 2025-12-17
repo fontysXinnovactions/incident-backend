@@ -97,10 +97,11 @@ public class SlackManagerActions {
           ReporterInfo reporterInfo = channelAdministrationPort.extractReporterIdFromTopic(channel);
 
           if (reporterInfo != null) {
-            broadcaster.askUserForMoreInfo(reporterInfo.reporterId);
-            managerBotMessagingPort.sendMessage(
-                channel,
-                "We sent a message to the reporter to ask for more details about the incident\n\nWe will update you once we receive a response.");
+            // open a modal with input and submit button
+            var modalJson = IncidentActionBlocks.askMoreInfoModal(channel);
+            ctx.client()
+                .viewsOpen(
+                    r -> r.triggerId(req.getPayload().getTriggerId()).viewAsString(modalJson));
             return ctx.ack();
           } else {
             managerBotMessagingPort.sendMessage(
@@ -108,6 +109,33 @@ public class SlackManagerActions {
                 "⚠️ Unable to retrieve reporter information. Cannot ask for more details.");
             return ctx.ack();
           }
+        });
+
+    managerApp.viewSubmission(
+        "ask_more_info_modal",
+        (req, ctx) -> {
+          var view = req.getPayload().getView();
+          String channelId = view.getPrivateMetadata();
+
+          var stateValues = view.getState().getValues();
+          String developerMessage =
+              stateValues.get("details_block").get("ask_more_info_action").getValue();
+
+          ReporterInfo reporterInfo =
+              channelAdministrationPort.extractReporterIdFromTopic(channelId);
+          if (reporterInfo != null) {
+            broadcaster.askUserForMoreInfo(reporterInfo.reporterId, developerMessage);
+
+            managerBotMessagingPort.sendMessage(
+                channelId,
+                "✅ Additional details sent to the reporter. We will update you once they respond.");
+          } else {
+            managerBotMessagingPort.sendMessage(
+                channelId,
+                "⚠️ Unable to retrieve reporter information. Cannot send additional details.");
+          }
+
+          return ctx.ack();
         });
   }
 }

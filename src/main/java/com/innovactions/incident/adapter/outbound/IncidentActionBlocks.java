@@ -63,6 +63,46 @@ public final class IncidentActionBlocks {
                 List.of(button("Leave Channel", "leave_channel", "danger")))));
   }
 
+  /**
+   * Creates a Slack modal JSON string prompting the user to provide additional information.
+   *
+   * <p>The provided {@code channelId} is stored in the modal's {@code private_metadata} field,
+   * allowing it to be retrieved when the modal is submitted. This is useful for associating the
+   * modal submission with the correct Slack channel.
+   *
+   * @param channelId the ID of the Slack channel, stored as private metadata for later retrieval
+   * @return a JSON string representing the Slack modal
+   */
+  public static String askMoreInfoModal(String channelId) {
+    return toJson(
+        Map.of(
+            "type", "modal",
+            "callback_id", "ask_more_info_modal",
+            "private_metadata", channelId,
+            "title", Map.of("type", "plain_text", "text", "Ask for More Info"),
+            "submit", Map.of("type", "plain_text", "text", "Send"),
+            "close", Map.of("type", "plain_text", "text", "Cancel"),
+            "blocks",
+                List.of(
+                    Map.of(
+                        "type",
+                        "input",
+                        "block_id",
+                        "details_block",
+                        "label",
+                        Map.of("type", "plain_text", "text", "Additional Comments", "emoji", true),
+                        "element",
+                        Map.of(
+                            "type",
+                            "plain_text_input",
+                            "action_id",
+                            "ask_more_info_action",
+                            "multiline",
+                            true,
+                            "placeholder",
+                            Map.of("type", "plain_text", "text", "Type your message here..."))))));
+  }
+
   private static Map<String, Object> button(String text, String actionId, String style) {
     var button = new java.util.HashMap<String, Object>();
     button.put("type", "button");

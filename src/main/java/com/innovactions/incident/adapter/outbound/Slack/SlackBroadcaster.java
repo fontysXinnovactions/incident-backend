@@ -103,11 +103,15 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
   }
 
   @Override
-  public void askUserForMoreInfo(String reporterId) {
+  public void askUserForMoreInfo(String reporterId, String details) {
     reporterBotMessagingPort.sendMessageWithBlocks(
         reporterId,
         "👋 Hi! A developer is working on the incident you reported. "
-            + "Could you please provide more details about the issue to help us resolve it faster?\n\n"
+            + "They have sent the following message:\n\n"
+            + '"'
+            + details
+            + '"'
+            + "\n\n"
             + "You can reply by clicking the 'Provide Info' button below this chat.\n"
             + "Please reply with any additional information, or steps to reproduce the problem.\n\n"
             + "Thank you for your cooperation!",
