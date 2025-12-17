@@ -1,4 +1,4 @@
-package com.innovactions.incident.application.listner;
+package com.innovactions.incident.application.listener;
 
 import com.innovactions.incident.domain.event.IncidentClosedEvent;
 import com.innovactions.incident.port.outbound.IncidentReporterNotifierPort;

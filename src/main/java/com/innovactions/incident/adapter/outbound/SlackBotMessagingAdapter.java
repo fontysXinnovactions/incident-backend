@@ -1,11 +1,16 @@
 package com.innovactions.incident.adapter.outbound;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import com.slack.api.methods.response.users.UsersInfoResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -36,11 +41,15 @@ public class SlackBotMessagingAdapter implements BotMessagingPort {
     try {
       ChatPostMessageResponse response;
       if (blocksJson != null) {
+        // If caller supplied both text and blocks, ensure the text is visible by prepending
+        // a "section" block. Slack ignores the top-level text when blocks are present.
+        final String effectiveBlocks =
+            (text != null && !text.isBlank()) ? prependTextSection(blocksJson, text) : blocksJson;
         response =
             Slack.getInstance()
                 .methods(botToken)
                 .chatPostMessage(
-                    req -> req.channel(channelId).text(text).blocksAsString(blocksJson));
+                    req -> req.channel(channelId).text(text).blocksAsString(effectiveBlocks));
       } else {
         response =
             Slack.getInstance()
@@ -55,6 +64,34 @@ public class SlackBotMessagingAdapter implements BotMessagingPort {
       }
     } catch (IOException | SlackApiException e) {
       log.error("Error sending message to {}: {}", channelId, e.getMessage(), e);
+    }
+  }
+
+  private String prependTextSection(String blocksJson, String text) {
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      JsonNode node = mapper.readTree(blocksJson.getBytes(StandardCharsets.UTF_8));
+      ArrayNode blocksArray;
+      if (node == null || !node.isArray()) {
+        blocksArray = mapper.createArrayNode();
+      } else {
+        blocksArray = (ArrayNode) node;
+      }
+
+      ObjectNode section = mapper.createObjectNode();
+      section.put("type", "section");
+      ObjectNode mrkdwn = mapper.createObjectNode();
+      mrkdwn.put("type", "mrkdwn");
+      mrkdwn.put("text", text);
+      section.set("text", mrkdwn);
+
+      ArrayNode newArray = mapper.createArrayNode();
+      newArray.add(section);
+      newArray.addAll(blocksArray);
+      return mapper.writeValueAsString(newArray);
+    } catch (Exception e) {
+      log.warn("Failed to prepend section to blocks: {}", e.getMessage());
+      return blocksJson;
     }
   }
 

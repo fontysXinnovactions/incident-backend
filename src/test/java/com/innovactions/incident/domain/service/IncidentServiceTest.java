@@ -40,7 +40,7 @@ class IncidentServiceTest {
               .build();
 
       // When
-      Incident result = service.createIncident(cmd, Severity.MAJOR);
+      Incident result = service.createIncident(cmd, Severity.MAJOR, "Database outage");
 
       // Then
       assertThat(result).isNotNull();
@@ -48,14 +48,15 @@ class IncidentServiceTest {
       assertThat(result.getReporterName()).isEqualTo("Alice");
       assertThat(result.getDetails()).isEqualTo("Database outage");
       assertThat(result.getSeverity()).isEqualTo(Severity.MAJOR);
-      assertThat(result.getAssignee()).isEqualTo("Bob");
+      // Default assignee is now 'Pending' until explicitly assigned
+      assertThat(result.getAssignee()).isEqualTo("Pending");
       assertThat(result.getId()).isNotNull(); // UUID auto-generated
     }
 
     @Test
     @DisplayName("Should throw when given null command")
     void shouldThrowWhenCommandNull() {
-      assertThatThrownBy(() -> service.createIncident(null, Severity.MINOR))
+      assertThatThrownBy(() -> service.createIncident(null, Severity.MINOR, "Database outage"))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -73,7 +74,7 @@ class IncidentServiceTest {
               .build();
 
       // When, Then
-      assertThatThrownBy(() -> service.createIncident(cmd, null))
+      assertThatThrownBy(() -> service.createIncident(cmd, null, "Something broke"))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -91,7 +92,7 @@ class IncidentServiceTest {
               .build();
 
       // When
-      Incident result = service.createIncident(cmd, Severity.MINOR);
+      Incident result = service.createIncident(cmd, Severity.MINOR, " ");
 
       // Then
       assertThat(result).isNotNull();
@@ -107,29 +108,51 @@ class IncidentServiceTest {
     @DisplayName("should create an updated Incident with a generated UUID id")
     void shouldUpdateIncident() {
       // Given
-      var cmd =
+      var updateCmd =
           UpdateIncidentCommand.builder()
               .channelId("INC-42")
               .message("Updated details")
               .updatedAt(Instant.now())
               .build();
 
+      var createCmd =
+          CreateIncidentCommand.builder()
+              .reporterId("rep-123")
+              .reporterName("Alice")
+              .message("Original message")
+              .timestamp(Instant.now())
+              .platform(Platform.SLACK)
+              .build();
+
       // When
-      Incident updated = service.updateIncident(cmd);
+      Incident updated = service.updateIncident(updateCmd, createCmd);
 
       // Then
       assertThat(updated).isNotNull();
       assertThat(updated.getId()).isInstanceOf(java.util.UUID.class);
-      assertThat(updated.getReporterName()).isEqualTo("ReporterName");
+      assertThat(updated.getReporterId()).isEqualTo("rep-123");
+      assertThat(updated.getReporterName()).isEqualTo("Alice");
       assertThat(updated.getSeverity()).isEqualTo(Severity.MINOR);
-      assertThat(updated.getAssignee()).isEqualTo("Bob");
+      // Default assignee is now 'Pending' until explicitly assigned
+      assertThat(updated.getAssignee()).isEqualTo("Pending");
       assertThat(updated.getDetails()).isEqualTo("Updated details");
     }
 
     @Test
-    @DisplayName("should throw NullPointerException when command is null")
+    @DisplayName("should throw NullPointerException when update command is null")
     void shouldThrowWhenUpdateCommandNull() {
-      assertThatThrownBy(() -> service.updateIncident(null))
+      // Given
+      var createCmd =
+          CreateIncidentCommand.builder()
+              .reporterId("rep-123")
+              .reporterName("Alice")
+              .message("Original message")
+              .timestamp(Instant.now())
+              .platform(Platform.SLACK)
+              .build();
+
+      // When, Then
+      assertThatThrownBy(() -> service.updateIncident(null, createCmd))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -137,11 +160,36 @@ class IncidentServiceTest {
     @DisplayName("should throw NullPointerException when message is null")
     void shouldThrowWhenNullFields() {
       // Given
-      var cmd =
+      var updateCmd =
           UpdateIncidentCommand.builder().channelId("INC-99").message(null).updatedAt(null).build();
 
+      var createCmd =
+          CreateIncidentCommand.builder()
+              .reporterId("rep-123")
+              .reporterName("Alice")
+              .message("Original message")
+              .timestamp(Instant.now())
+              .platform(Platform.SLACK)
+              .build();
+
       // When, Then
-      assertThatThrownBy(() -> service.updateIncident(cmd))
+      assertThatThrownBy(() -> service.updateIncident(updateCmd, createCmd))
+          .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("should throw NullPointerException when create command is null")
+    void shouldThrowWhenCreateCommandNull() {
+      // Given
+      var updateCmd =
+          UpdateIncidentCommand.builder()
+              .channelId("INC-99")
+              .message("Updated message")
+              .updatedAt(Instant.now())
+              .build();
+
+      // When, Then
+      assertThatThrownBy(() -> service.updateIncident(updateCmd, null))
           .isInstanceOf(NullPointerException.class);
     }
   }

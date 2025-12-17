@@ -6,6 +6,7 @@ import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
+import com.innovactions.incident.domain.model.IncidentClassification;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.service.IncidentService;
@@ -56,11 +57,14 @@ class IncidentApplicationServiceTest {
               .platform(Platform.SLACK)
               .build();
 
-      when(contextService.hasActiveContext(command)).thenReturn(false);
-      when(classifier.classify("Database is down")).thenReturn(Severity.MAJOR);
+      //      when(contextService.hasActiveContext(command)).thenReturn(false);
+      when(contextService.findValidUpdateContext(command)).thenReturn(null);
+      when(classifier.classify("Database is down"))
+          .thenReturn(new IncidentClassification(Severity.MAJOR, "Database is down"));
 
       var fakeIncident = mock(Incident.class);
-      when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
+      when(incidentService.createIncident(command, Severity.MAJOR, "Database is down"))
+          .thenReturn(fakeIncident);
       when(broadcaster.initSlackDeveloperWorkspace(fakeIncident, command.platform()))
           .thenReturn("channel-123");
 
@@ -69,11 +73,15 @@ class IncidentApplicationServiceTest {
 
       // Then
       InOrder inOrder = inOrder(contextService, classifier, incidentService, broadcaster);
-      inOrder.verify(contextService).hasActiveContext(command);
+      // First attempt to treat it as an update
+      inOrder.verify(contextService).findValidUpdateContext(command);
+
+      // Then fall back to creating a new incident flow
       inOrder.verify(classifier).classify("Database is down");
-      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR);
+      inOrder.verify(incidentService).createIncident(command, Severity.MAJOR, "Database is down");
       inOrder.verify(broadcaster).initSlackDeveloperWorkspace(fakeIncident, command.platform());
-      inOrder.verify(contextService).saveNewIncident(command, "channel-123");
+      inOrder.verify(contextService).saveNewIncident(command, "channel-123", Severity.MAJOR);
+
       verifyNoMoreInteractions(contextService, classifier, incidentService, broadcaster);
     }
 
@@ -82,7 +90,15 @@ class IncidentApplicationServiceTest {
     void shouldDelegateToUpdateExistingIncident() {
       // Given
       var command = mock(CreateIncidentCommand.class);
+      when(command.reporterId()).thenReturn("U12345");
       when(contextService.hasActiveContext(command)).thenReturn(true);
+
+      var updateCmd = mock(UpdateIncidentCommand.class);
+      when(contextService.findValidUpdateContext(command)).thenReturn(updateCmd);
+      when(updateCmd.channelId()).thenReturn("C12345");
+
+      var updatedIncident = mock(Incident.class);
+      when(incidentService.updateIncident(updateCmd, command)).thenReturn(updatedIncident);
 
       var spyService = spy(appService);
 
@@ -91,7 +107,9 @@ class IncidentApplicationServiceTest {
 
       // Then
       verify(spyService).updateExistingIncident(command);
-      verifyNoInteractions(classifier, incidentService, broadcaster);
+      verify(incidentService).updateIncident(updateCmd, command);
+      verify(broadcaster).updateIncidentToDeveloper(updatedIncident, "C12345");
+      verifyNoInteractions(classifier);
     }
   }
 
@@ -123,14 +141,17 @@ class IncidentApplicationServiceTest {
     void shouldStartNewFlowIfNoValidUpdateContext() {
       // Given
       var createCmd = mock(CreateIncidentCommand.class);
+      when(createCmd.reporterId()).thenReturn("U12345");
       when(contextService.findValidUpdateContext(createCmd)).thenReturn(null);
 
       // When
-      appService.updateExistingIncident(createCmd);
+      boolean result = appService.updateExistingIncident(createCmd);
 
       // Then
       verify(contextService).findValidUpdateContext(createCmd);
-      verifyNoInteractions(incidentService, broadcaster);
+      verifyNoInteractions(incidentService);
+      verifyNoInteractions(broadcaster); // Remove the warnUserOfUnlinkedIncident verification
+      assert !result; // Should return false
     }
 
     @Test
@@ -142,7 +163,7 @@ class IncidentApplicationServiceTest {
       var incident = mock(Incident.class);
 
       when(contextService.findValidUpdateContext(createCmd)).thenReturn(updateCmd);
-      when(incidentService.updateIncident(updateCmd)).thenReturn(incident);
+      when(incidentService.updateIncident(updateCmd, createCmd)).thenReturn(incident);
       when(updateCmd.channelId()).thenReturn("channel-99");
 
       // When
@@ -151,7 +172,7 @@ class IncidentApplicationServiceTest {
       // Then
       InOrder inOrder = inOrder(contextService, incidentService, broadcaster);
       inOrder.verify(contextService).findValidUpdateContext(createCmd);
-      inOrder.verify(incidentService).updateIncident(updateCmd);
+      inOrder.verify(incidentService).updateIncident(updateCmd, createCmd);
       inOrder.verify(broadcaster).updateIncidentToDeveloper(incident, "channel-99");
     }
   }

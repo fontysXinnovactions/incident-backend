@@ -7,4 +7,10 @@ public interface IncidentBroadcasterPort {
   String initSlackDeveloperWorkspace(Incident incident, Platform platform);
 
   void updateIncidentToDeveloper(Incident incident, String channelId);
+
+  void warnUserOfUnlinkedIncident(String reporterId);
+
+  void askUserForMoreInfo(String reporterId, String details);
+
+  void notifyDeveloperOfAssignment(String developerId, String channelId);
 }

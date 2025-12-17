@@ -2,5 +2,7 @@ package com.innovactions.incident.domain.model;
 
 public enum Status {
   OPEN,
-  RESOLVED
+  ASSIGNED,
+  RESOLVED,
+  DISMISSED
 }

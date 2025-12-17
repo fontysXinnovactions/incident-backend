@@ -5,6 +5,8 @@ import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
+import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
+import com.innovactions.incident.port.outbound.PendingReportStatePort;
 import com.slack.api.bolt.App;
 import com.slack.api.model.event.MessageEvent;
 import java.time.Instant;
@@ -21,9 +23,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SlackReporterFlow {
 
-  private final PendingReportState pendingReportState;
+  private final PendingReportStatePort pendingReportState;
   private final IncidentInboundPort incidentInboundPort;
   private final BotMessagingPort reporterBotMessagingPort;
+  private final IncidentBroadcasterPort broadcaster;
 
   public void register(App app) {
     // report_bug --> mark pending and prompt for details
@@ -33,7 +36,21 @@ public class SlackReporterFlow {
           String userId = req.getPayload().getUser().getId();
           pendingReportState.markPending(userId);
           reporterBotMessagingPort.sendMessage(
-              userId, "<@" + userId + ">, please describe the bug in detail.");
+              userId,
+              "<@"
+                  + userId
+                  + ">, please describe the bug in detail.\n"
+                  + "A great way to describe your incident is to be clear and specific. "
+                  + "Here's a sample for you to follow:\n\n"
+                  + "*Steps to Reproduce:*\n"
+                  + "1. Open the app\n"
+                  + "2. Click on 'Submit'\n"
+                  + "3. Observe the error\n\n"
+                  + "*Expected Result:*\n"
+                  + "The app should submit the form without errors.\n\n"
+                  + "*Actual Result:*\n"
+                  + "An error message is displayed and the form is not submitted."
+                  + "\n\nNow it's your turn! Provide similar details for your incident.");
           return ctx.ack();
         });
 
@@ -42,9 +59,31 @@ public class SlackReporterFlow {
         "check_status",
         (req, ctx) -> {
           String userId = req.getPayload().getUser().getId();
+          // for now:
+          // check status of pending report state and update report state
+          String isUserPending = pendingReportState.isPending(userId) ? "pending" : "not pending";
+          String isUserUpdating =
+              pendingReportState.isUpdating(userId) ? "updating" : "not updating";
           reporterBotMessagingPort.sendMessage(
-              userId, "<@" + userId + ">, status check feature is not implemented yet.");
-          // TODO
+              userId,
+              "<@"
+                  + userId
+                  + ">, your report is currently "
+                  + isUserPending
+                  + " and is "
+                  + isUserUpdating
+                  + ".");
+          return ctx.ack();
+        });
+
+    // update_incident --> prompt user to provide updated details
+    app.blockAction(
+        "update_incident",
+        (req, ctx) -> {
+          String userId = req.getPayload().getUser().getId();
+          pendingReportState.markUpdating(userId);
+          reporterBotMessagingPort.sendMessage(
+              userId, "<@" + userId + ">, please provide some updated details of your incident.");
           return ctx.ack();
         });
 
@@ -71,25 +110,43 @@ public class SlackReporterFlow {
                 () -> {
                   try {
                     String reporterName = reporterBotMessagingPort.resolveUserRealName(userId);
-
                     CreateIncidentCommand command =
                         new CreateIncidentCommand(
                             userId, reporterName, text, Instant.now(), Platform.SLACK);
                     incidentInboundPort.reportIncident(command);
-                    reporterBotMessagingPort.sendMessage(
-                        userId,
-                        "Bug assigned to an available developer. We will notify you when it's resolved.");
                   } catch (Exception e) {
                     // pass
                   } finally {
-                    pendingReportState.clear(userId);
+                    pendingReportState.clearPending(userId);
+                  }
+                });
+          } else if (pendingReportState.isUpdating(userId)) {
+            reporterBotMessagingPort.sendMessage(userId, "Thanks! Processing your update...");
+            CompletableFuture.runAsync(
+                () -> {
+                  try {
+                    CreateIncidentCommand updateCommand =
+                        new CreateIncidentCommand(
+                            userId,
+                            reporterBotMessagingPort.resolveUserRealName(userId),
+                            text,
+                            Instant.now(),
+                            Platform.SLACK);
+                    boolean updated = incidentInboundPort.updateExistingIncident(updateCommand);
+                    if (!updated) {
+                      broadcaster.warnUserOfUnlinkedIncident(updateCommand.reporterId());
+                    }
+                  } catch (Exception e) {
+                    // pass
+                  } finally {
+                    pendingReportState.clearUpdating(userId);
                   }
                 });
           } else {
             // is there a better way to format json in java?
             reporterBotMessagingPort.sendMessageWithBlocks(
                 event.getChannel(),
-                "Hi, what would you like to do?",
+                "Hi, you are now talking to a bot. Please use the button to choose what you would like to do.",
                 IncidentActionBlocks.reporterButtons());
           }
 

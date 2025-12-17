@@ -1,12 +1,17 @@
 package com.innovactions.incident.config;
 
-import com.innovactions.incident.adapter.inbound.slack.*;
+import com.innovactions.incident.adapter.inbound.slack.SlackCloseIncident;
+import com.innovactions.incident.adapter.inbound.slack.SlackCreateIncident;
+import com.innovactions.incident.adapter.inbound.slack.SlackManagerActions;
+import com.innovactions.incident.adapter.inbound.slack.SlackReporterFlow;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentReporterNotifierAdapter;
+import com.innovactions.incident.adapter.outbound.Slack.SlackUserInfoAdapter;
 import com.innovactions.incident.adapter.outbound.SlackBotMessagingAdapter;
 import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
+import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.*;
 import com.slack.api.bolt.App;
@@ -22,21 +27,24 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SlackConfig {
+  private final String signingSecretA;
+  private final String signingSecretB;
+  private final String botTokenA;
+  private final String botTokenB;
+  private final String developerUserId;
 
-  @Value("${slack.signingSecretA}")
-  private String signingSecretA;
-
-  @Value("${slack.signingSecretB}")
-  private String signingSecretB;
-
-  @Value("${slack.botTokenA}")
-  private String botTokenA;
-
-  @Value("${slack.botTokenB}")
-  private String botTokenB;
-
-  @Value("${slack.developerUserId}")
-  private String developerUserId;
+  public SlackConfig(
+      @Value("${slack.signingSecretA}") String signingSecretA,
+      @Value("${slack.signingSecretB}") String signingSecretB,
+      @Value("${slack.botTokenA}") String botTokenA,
+      @Value("${slack.botTokenB}") String botTokenB,
+      @Value("${slack.developerUserId}") String developerUserId) {
+    this.signingSecretA = signingSecretA;
+    this.signingSecretB = signingSecretB;
+    this.botTokenA = botTokenA;
+    this.botTokenB = botTokenB;
+    this.developerUserId = developerUserId;
+  }
 
   /* ─────────────────────────────────────
   Reporter (Bot A)
@@ -130,30 +138,48 @@ public class SlackConfig {
   public IncidentBroadcasterPort slackBroadcaster(
       ChannelNameGenerator channelNameGenerator,
       BotMessagingPort managerBotMessagingPort,
-      ChannelAdministrationPort channelAdministrationPort) {
+      BotMessagingPort reporterBotMessagingPort,
+      ChannelAdministrationPort channelAdministrationPort,
+      EncryptionService encryptionService) {
     return new SlackBroadcaster(
-        developerUserId, channelNameGenerator, managerBotMessagingPort, channelAdministrationPort);
+        developerUserId,
+        channelNameGenerator,
+        managerBotMessagingPort,
+        reporterBotMessagingPort,
+        channelAdministrationPort,
+        encryptionService);
   }
 
   @Bean
   public IncidentClosurePort incidentClosureBroadcaster(
       BotMessagingPort reporterBotMessagingPort,
       BotMessagingPort managerBotMessagingPort,
-      ApplicationEventPublisher eventPublisher) {
+      ApplicationEventPublisher eventPublisher,
+      ChannelAdministrationPort channelAdministrationPort,
+      IncidentPersistencePort incidentPersistencePort) {
     return new SlackIncidentClosureBroadcaster(
-        botTokenB, reporterBotMessagingPort, managerBotMessagingPort, eventPublisher);
+        botTokenB,
+        reporterBotMessagingPort,
+        managerBotMessagingPort,
+        eventPublisher,
+        channelAdministrationPort,
+        incidentPersistencePort);
   }
 
   @Bean
-  public IncidentReporterNotifierPort slackIncidentReporterNotifierAdapter() {
-    return new SlackIncidentReporterNotifierAdapter(botTokenA);
+  public IncidentReporterNotifierPort slackIncidentReporterNotifierAdapter(
+      BotMessagingPort reporterBotMessagingPort) {
+    return new SlackIncidentReporterNotifierAdapter(reporterBotMessagingPort);
   }
 
   @Bean
   public SlackManagerActions slackManagerActions(
       ChannelAdministrationPort channelAdministrationPort,
-      BotMessagingPort managerBotMessagingPort) {
-    return new SlackManagerActions(channelAdministrationPort, managerBotMessagingPort);
+      BotMessagingPort managerBotMessagingPort,
+      IncidentBroadcasterPort broadcaster,
+      IncidentPersistencePort incidentPersistencePort) {
+    return new SlackManagerActions(
+        channelAdministrationPort, managerBotMessagingPort, broadcaster, incidentPersistencePort);
   }
 
   @Bean
@@ -167,7 +193,13 @@ public class SlackConfig {
   }
 
   @Bean
-  public ChannelAdministrationPort channelAdministrationPort() {
-    return new SlackChannelAdministrationAdapter(botTokenB);
+  public ChannelAdministrationPort channelAdministrationPort(EncryptionService encryptionService) {
+    return new SlackChannelAdministrationAdapter(botTokenB, encryptionService);
+  }
+
+  @Bean
+  public UserInfoPort slackUserInfoPort() {
+    // Use manager workspace bot token (bot B) for user lookup
+    return new SlackUserInfoAdapter(botTokenB);
   }
 }

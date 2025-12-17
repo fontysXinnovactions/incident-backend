@@ -4,7 +4,7 @@ import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
-import com.innovactions.incident.domain.model.Severity;
+import com.innovactions.incident.domain.model.IncidentClassification;
 import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
@@ -34,16 +34,18 @@ public class IncidentApplicationService implements IncidentInboundPort {
    */
   @Override
   public void reportIncident(CreateIncidentCommand command) {
-    boolean hasActiveContext = conversationContextService.hasActiveContext(command);
-    if (hasActiveContext) {
-      updateExistingIncident(command);
+    boolean updated = updateExistingIncident(command);
+    if (updated) {
       return;
     }
-    Severity severity = severityClassifier.classify(command.message());
 
-    Incident incident = incidentService.createIncident(command, severity);
+    IncidentClassification classification = severityClassifier.classify(command.message());
+
+    Incident incident =
+        incidentService.createIncident(
+            command, classification.severity(), classification.summary());
     String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
-    conversationContextService.saveNewIncident(command, channelId);
+    conversationContextService.saveNewIncident(command, channelId, classification.severity());
   }
 
   @Override
@@ -63,9 +65,10 @@ public class IncidentApplicationService implements IncidentInboundPort {
    * not.
    *
    * @param command Incoming incident
+   * @return {@code true} if the incident was updated; {@code false} otherwise.
    */
   @Override
-  public void updateExistingIncident(CreateIncidentCommand command) {
+  public boolean updateExistingIncident(CreateIncidentCommand command) {
 
     UpdateIncidentCommand updateCommand =
         conversationContextService.findValidUpdateContext(command);
@@ -75,10 +78,11 @@ public class IncidentApplicationService implements IncidentInboundPort {
       log.info(
           "No valid update context found for reporter {} — starting new incident flow.",
           command.reporterId());
-      return;
+      return false;
     }
     // If it's an update, update context and send it to the existing channel
-    Incident updatedIncident = incidentService.updateIncident(updateCommand);
+    Incident updatedIncident = incidentService.updateIncident(updateCommand, command);
     broadcaster.updateIncidentToDeveloper(updatedIncident, updateCommand.channelId());
+    return true;
   }
 }
