@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 class PlatformTest {
 
   @Test
-  @DisplayName("should contain exactly WHATSAPP and SLACK")
+  @DisplayName("should contain exactly WHATSAPP, SLACK and EMAIL")
   void shouldContainExpectedValues() {
-    assertThat(Platform.values()).containsExactly(Platform.WHATSAPP, Platform.SLACK);
+    assertThat(Platform.values()).containsExactly(Platform.WHATSAPP, Platform.SLACK, Platform.EMAIL);
   }
 
   @Test
@@ -18,6 +18,7 @@ class PlatformTest {
   void shouldResolveFromName() {
     assertThat(Platform.valueOf("WHATSAPP")).isEqualTo(Platform.WHATSAPP);
     assertThat(Platform.valueOf("SLACK")).isEqualTo(Platform.SLACK);
+    assertThat(Platform.valueOf("EMAIL")).isEqualTo(Platform.EMAIL);
   }
 
   @Test
