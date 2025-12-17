@@ -39,7 +39,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
       return;
     }
 
-    Severity severity = severityClassifier.classify(command.message()).getSeverity();
+    Severity severity = severityClassifier.classify(command.message()).severity();
 
     Incident incident = incidentService.createIncident(command, severity);
     String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
