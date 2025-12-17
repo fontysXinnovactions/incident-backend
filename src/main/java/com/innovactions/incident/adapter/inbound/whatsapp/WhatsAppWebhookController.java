@@ -3,6 +3,9 @@ package com.innovactions.incident.adapter.inbound.whatsapp;
 import com.innovactions.incident.adapter.inbound.whatsapp.mapper.WhatsAppIncidentCommandMapper;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
+import com.innovactions.incident.port.outbound.IncidentDetectorPort;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class WhatsAppWebhookController {
 
   private final IncidentInboundPort incidentInboundPort;
+  private final IncidentDetectorPort incidentDetectorPort;
 
   /** The 'verify' token from the Meta Developer dashboard. */
   @Value("${whatsapp.verifyToken}")
@@ -67,12 +71,33 @@ public class WhatsAppWebhookController {
     try {
       log.debug("Incoming WhatsApp webhook received with {} entries", payload.getEntry().size());
 
-      CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
-      incidentInboundPort.reportIncident(command);
+      List<WhatsAppPayload.Message> messages = List.of();
 
-      log.info(
-          "Successfully processed WhatsApp message from incident reporter {}",
-          command.reporterId());
+      try {
+        messages = payload.getEntry().getFirst().getChanges().getFirst().getValue().getMessages();
+
+      } catch (Exception ignored) {
+      }
+
+      String messageText =
+          messages.stream()
+              .map(m -> m.getText() != null ? m.getText().getBody() : "")
+              .filter(s -> !s.isEmpty())
+              .collect(Collectors.joining("\n"));
+
+      boolean isIncident = incidentDetectorPort.isIncident(messageText);
+
+      if (isIncident) {
+        CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
+        incidentInboundPort.reportIncident(command);
+
+        log.info(
+            "Successfully processed WhatsApp message from incident reporter {}",
+            command.reporterId());
+      } else {
+        log.info("Message is not an incident. No incident created.");
+      }
+
       return ResponseEntity.ok().build();
 
     } catch (Exception e) {
