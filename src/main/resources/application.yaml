@@ -31,3 +31,6 @@ spring:
             options:
               model: text-embedding-004
             enabled: true
+
+  graph:
+    client-id: ${email-graph-client-id}

@@ -11,4 +11,6 @@ public interface IncidentBroadcasterPort {
   void warnUserOfUnlinkedIncident(String reporterId);
 
   void askUserForMoreInfo(String reporterId, String details);
+
+  void notifyDeveloperOfAssignment(String developerId, String channelId);
 }
