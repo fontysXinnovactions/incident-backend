@@ -6,6 +6,7 @@ import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
 import com.innovactions.incident.domain.model.Incident;
+import com.innovactions.incident.domain.model.IncidentClassification;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.service.IncidentService;
@@ -58,7 +59,11 @@ class IncidentApplicationServiceTest {
 
       //      when(contextService.hasActiveContext(command)).thenReturn(false);
       when(contextService.findValidUpdateContext(command)).thenReturn(null);
-      when(classifier.classify("Database is down")).thenReturn(Severity.MAJOR);
+        when(classifier.classify("Database is down"))
+                .thenReturn(new IncidentClassification(
+                        Severity.MAJOR,
+                        "Database is down"
+                ));
 
       var fakeIncident = mock(Incident.class);
       when(incidentService.createIncident(command, Severity.MAJOR)).thenReturn(fakeIncident);
