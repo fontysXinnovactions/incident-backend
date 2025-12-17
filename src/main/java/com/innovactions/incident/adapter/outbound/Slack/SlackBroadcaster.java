@@ -117,4 +117,13 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
             + "Thank you for your cooperation!",
         IncidentActionBlocks.askForMoreInfoButtons());
   }
+
+  @Override
+  public void notifyDeveloperOfAssignment(String developerId, String channelId) {
+    managerBotMessagingPort.sendMessage(
+        developerId,
+        "✅ You have been assigned to a new incident by your manager. Please join the channel <#"
+            + channelId
+            + "> for details.");
+  }
 }

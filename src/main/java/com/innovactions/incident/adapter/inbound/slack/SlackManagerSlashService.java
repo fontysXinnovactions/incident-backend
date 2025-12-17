@@ -5,6 +5,7 @@ import com.innovactions.incident.adapter.security.EncryptionAdapter;
 import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
+import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import com.innovactions.incident.port.outbound.UserInfoPort;
 import java.time.format.DateTimeFormatter;
@@ -31,6 +32,7 @@ public class SlackManagerSlashService {
   private final EncryptionAdapter encryptionAdapter;
   private final UserInfoPort userInfoPort;
   private final IncidentInboundPort incidentInboundPort;
+  private final IncidentBroadcasterPort broadcaster;
 
   public String closeIncident(SlashCommandRequest request) {
     String userId = request.getUserId();
@@ -108,6 +110,12 @@ public class SlackManagerSlashService {
     }
 
     IncidentEntity incident = incidentOpt.get();
+
+    String channelId = incident.getSlackChannelId();
+
+    // notify developer of assignment by managerbot
+    broadcaster.notifyDeveloperOfAssignment(developerId, channelId);
+
     return String.format(
         "✅ Successfully assigned incident `%s` to <%s>\n" + "• *Status:* %s\n" + "• *Severity:* %s",
         incident.getId(), developerId, incident.getStatus(), incident.getSeverity());
