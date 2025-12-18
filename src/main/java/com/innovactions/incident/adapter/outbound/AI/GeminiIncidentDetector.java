@@ -5,18 +5,20 @@ import com.google.genai.types.GenerateContentResponse;
 import com.innovactions.incident.port.outbound.IncidentDetectorPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class GeminiIncidentDetector implements IncidentDetectorPort {
 
   private final Client client;
 
-  public GeminiIncidentDetector() {
-    this.client = new Client(); // reads GEMINI_API_KEY from env
-  }
+    public GeminiIncidentDetector(@Value("${gemini.api.key}") String apiKey) {
+        this.client = Client.builder()
+                .apiKey(apiKey)
+                .build();
+    }
 
   /**
    * Determines if a message describes an incident.
