@@ -26,7 +26,8 @@ public class WhatsAppIncidentReporterNotifierAdapter implements IncidentReporter
       String message = "✅ Your reported incident has been closed.\nReason: " + reason;
 
       // In WhatsApp's case, channelId = reporter's phone number
-      whatsAppOutboundAdapter.sendTextMessage(reporterId, message);
+//      whatsAppOutboundAdapter.sendTextMessage(reporterId, message);
+      whatsAppOutboundAdapter.sendQuotedTextMessageHardcoded(reporterId, message);
 
       log.info("Notified WhatsApp reporter {} about incident closure", reporterId);
     } catch (Exception e) {

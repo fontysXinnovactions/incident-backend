@@ -14,6 +14,11 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 public class WhatsAppOutboundAdapter implements WhatsAppOutboundPort {
+
+  //FIXME: remove only for testing quoting
+  private static final String HARDCODED_QUOTE_MESSAGE_ID =
+          "wamid.HBgLMzE2MTkzMTUyNTMVAgASGCBBQzQ3NENERTc5MEZFNTUzMjNEM0FENjgyOTZGNDJBMQA=";
+
   @Value("${whatsapp.apiUrl}")
   private String apiUrl; // e.g. https://graph.facebook.com/v20.0
 
@@ -53,4 +58,33 @@ public class WhatsAppOutboundAdapter implements WhatsAppOutboundPort {
       log.error("Failed to send WhatsApp message: {}", e.getMessage(), e);
     }
   }
+//FIXME: remove only for testing quoted messages
+  public void sendQuotedTextMessageHardcoded(String to, String message) {
+    String url = apiUrl + "/" + phoneNumberId + "/messages";
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.setBearerAuth(accessToken);
+
+    Map<String, Object> payload =
+            Map.of(
+                    "messaging_product", "whatsapp",
+                    "to", to,
+                    "type", "text",
+                    "context", Map.of("message_id", HARDCODED_QUOTE_MESSAGE_ID),
+                    "text", Map.of("body", message)
+            );
+
+    HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+    try {
+      ResponseEntity<String> response =
+              restTemplate.postForEntity(url, request, String.class);
+
+      log.info("✅ WhatsApp QUOTED message sent (hardcoded). Response: {}", response.getBody());
+    } catch (Exception e) {
+      log.error("❌ Failed to send quoted WhatsApp message", e);
+    }
+  }
+
 }

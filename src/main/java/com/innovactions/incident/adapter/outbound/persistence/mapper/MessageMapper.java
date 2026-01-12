@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MessageMapper {
   public Message toDomain(MessageEntity entity) {
-    return Message.loadExisting(entity.getId(), entity.getContent(), entity.getSentAt());
+    return Message.loadExisting(entity.getId(), entity.getContent(), entity.getSentAt(), entity.getPlatformMessageId());
+
   }
 
   public MessageEntity toEntity(Message domain) {

@@ -28,7 +28,7 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
 
   @Transactional
   @Override
-  public void saveNewIncident(Incident incident, String channelId) {
+  public void saveNewIncident(Incident incident, String channelId, String platformMessageId) {
       final String encryptedReporterId;
       try {
           encryptedReporterId = encryptionAdapter.encrypt(incident.getReporterId());
@@ -65,6 +65,7 @@ public class IncidentPersistenceAdapter implements IncidentPersistencePort {
             .incident(savedIncident)
             .content(incident.getDetails())
             .sentAt(incident.getReportedAt())
+                .platformMessageId(platformMessageId)
             .build();
 
     messagesJpaRepository.save(messageEntity);

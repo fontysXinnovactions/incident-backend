@@ -38,7 +38,7 @@ public class SlackCreateIncident {
     }
 
     CreateIncidentCommand command =
-        new CreateIncidentCommand(userId, reporterName, cleanText, Instant.now(), Platform.SLACK);
+        new CreateIncidentCommand(userId, reporterName, cleanText, Instant.now(), Platform.SLACK, "referenced_message_id");
 
     incidentInboundPort.reportIncident(command);
   }

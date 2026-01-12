@@ -68,6 +68,11 @@ public class WhatsAppPayload {
   @Data
   public static class Message {
     /**
+     * The WhatsApp-generated ID of this message.
+     * This must be stored so the message can be referenced later.
+     */
+    private String id;
+    /**
      * The sender’s WhatsApp ID, this is usually their phone number in international format (e.g.
      * "31612345678").
      */

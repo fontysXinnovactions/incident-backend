@@ -95,7 +95,7 @@ public class ConversationContextService {
             severity,
             "Developer" // or any default logic for now
             );
-    incidentPersistencePort.saveNewIncident(incident, channelId);
+    incidentPersistencePort.saveNewIncident(incident, channelId, command.platformMessageId());
   }
 
   /**

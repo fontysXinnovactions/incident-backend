@@ -26,12 +26,15 @@ public final class WhatsAppIncidentCommandMapper {
     String text = message.getText() != null ? message.getText().getBody() : "";
     Instant timestamp = Instant.ofEpochSecond(Long.parseLong(message.getTimestamp()));
 
+    String replyMessageId = message.getId(); //for replying to a specific message
+
     return CreateIncidentCommand.builder()
         .reporterId(from)
         .reporterName(senderName)
         .message(text)
         .timestamp(timestamp)
         .platform(Platform.WHATSAPP)
-        .build();
+            .platformMessageId(replyMessageId)
+            .build();
   }
 }

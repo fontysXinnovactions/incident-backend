@@ -15,6 +15,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
+                        "/incident/reply",
                         "/whatsapp/webhook",
                         "/slack/events",
                         "/slack/reporter",

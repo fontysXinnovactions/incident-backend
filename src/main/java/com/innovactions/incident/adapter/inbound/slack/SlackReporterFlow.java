@@ -109,7 +109,7 @@ public class SlackReporterFlow {
                     String reporterName = reporterBotMessagingPort.resolveUserRealName(userId);
                     CreateIncidentCommand command =
                         new CreateIncidentCommand(
-                            userId, reporterName, text, Instant.now(), Platform.SLACK);
+                            userId, reporterName, text, Instant.now(), Platform.SLACK, "referenced_message_id");
                     incidentInboundPort.reportIncident(command);
                   } catch (Exception e) {
                     // pass
@@ -128,7 +128,8 @@ public class SlackReporterFlow {
                             reporterBotMessagingPort.resolveUserRealName(userId),
                             text,
                             Instant.now(),
-                            Platform.SLACK);
+                            Platform.SLACK,
+                                "referenced_message_id");
                     incidentInboundPort.updateExistingIncident(updateCommand);
                   } catch (Exception e) {
                     // pass

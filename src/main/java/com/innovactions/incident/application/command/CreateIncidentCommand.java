@@ -9,4 +9,4 @@ public record CreateIncidentCommand(
     // Reporter id specifically refers to a platform
     // specific identification of the user reporting the
     // incident. Example: user id on slack, phone number on whatsapp
-    String reporterId, String reporterName, String message, Instant timestamp, Platform platform) {}
+    String reporterId, String reporterName, String message, Instant timestamp, Platform platform, String platformMessageId) {}

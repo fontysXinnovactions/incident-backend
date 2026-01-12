@@ -14,12 +14,13 @@ public class Message {
   private final UUID id;
   private final String content;
   private final Instant sentAt;
+  private final String platformMessageId;
 
-  public static Message createNew(String content, Instant sentAt) {
-    return new Message(null, content, sentAt); // id assigned later by DB
+  public static Message createNew(String content, Instant sentAt, String platformMessageId) {
+    return new Message(null, content, sentAt, platformMessageId); // id assigned later by DB
   }
 
-  public static Message loadExisting(UUID id, String content, Instant sentAt) {
-    return new Message(id, content, sentAt);
+  public static Message loadExisting(UUID id, String content, Instant sentAt, String platformMessageId) {
+    return new Message(id, content, sentAt, platformMessageId);
   }
 }

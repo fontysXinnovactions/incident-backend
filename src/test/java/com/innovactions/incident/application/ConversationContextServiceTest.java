@@ -88,7 +88,7 @@ class ConversationContextServiceTest {
                           && incident.getDetails().equals("down time")
                           && incident.getSeverity() == Severity.MAJOR
                           && incident.getAssignee().equals("Developer")),
-              eq(channelId));
+              eq(channelId), );
     }
   }
 }

@@ -18,7 +18,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IncidentEntity {
-  //    @GeneratedValue(strategy = GenerationType.UUID)
+
   @Id private UUID id;
 
   @Column(name = "summary")

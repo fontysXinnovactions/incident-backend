@@ -27,6 +27,9 @@ public class MessageEntity {
   @Column(nullable = false)
   private Instant sentAt;
 
+  @Column(name = "platform_message_id")
+  private String platformMessageId;
+
   @PrePersist
   private void prePersist() {
     if (sentAt == null) sentAt = Instant.now();
