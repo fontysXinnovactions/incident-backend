@@ -57,9 +57,6 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
     // invite developer to the channel
     channelAdministrationPort.inviteUsers(channelId, List.of(developerUserId));
 
-    // send incident summary to the new channel
-    managerBotMessagingPort.sendMessage(channelId, incident.summary());
-
     // post incident summary with actions to the new channel
     managerBotMessagingPort.sendMessageWithBlocks(
         channelId, incident.summary(), IncidentActionBlocks.acknowledgeDismissButtons());
@@ -107,14 +104,27 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
   }
 
   @Override
-  public void askUserForMoreInfo(String reporterId) {
+  public void askUserForMoreInfo(String reporterId, String details) {
     reporterBotMessagingPort.sendMessageWithBlocks(
         reporterId,
         "👋 Hi! A developer is working on the incident you reported. "
-            + "Could you please provide more details about the issue to help us resolve it faster?\n\n"
+            + "They have sent the following message:\n\n"
+            + '"'
+            + details
+            + '"'
+            + "\n\n"
             + "You can reply by clicking the 'Provide Info' button below this chat.\n"
             + "Please reply with any additional information, or steps to reproduce the problem.\n\n"
             + "Thank you for your cooperation!",
         IncidentActionBlocks.askForMoreInfoButtons());
+  }
+
+  @Override
+  public void notifyDeveloperOfAssignment(String developerId, String channelId) {
+    managerBotMessagingPort.sendMessage(
+        developerId,
+        "✅ You have been assigned to a new incident by your manager. Please join the channel <#"
+            + channelId
+            + "> for details.");
   }
 }

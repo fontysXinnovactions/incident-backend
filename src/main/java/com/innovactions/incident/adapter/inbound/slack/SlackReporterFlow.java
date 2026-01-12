@@ -5,6 +5,8 @@ import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
+import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
+import com.innovactions.incident.port.outbound.PendingReportStatePort;
 import com.slack.api.bolt.App;
 import com.slack.api.model.event.MessageEvent;
 import java.time.Instant;
@@ -21,9 +23,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SlackReporterFlow {
 
-  private final PendingReportState pendingReportState;
+  private final PendingReportStatePort pendingReportState;
   private final IncidentInboundPort incidentInboundPort;
   private final BotMessagingPort reporterBotMessagingPort;
+  private final IncidentBroadcasterPort broadcaster;
 
   public void register(App app) {
     // report_bug --> mark pending and prompt for details
@@ -109,7 +112,7 @@ public class SlackReporterFlow {
                     String reporterName = reporterBotMessagingPort.resolveUserRealName(userId);
                     CreateIncidentCommand command =
                         new CreateIncidentCommand(
-                            userId, reporterName, text, Instant.now(), Platform.SLACK, "referenced_message_id");
+                            userId, reporterName, text, Instant.now(), Platform.SLACK);
                     incidentInboundPort.reportIncident(command);
                   } catch (Exception e) {
                     // pass
@@ -128,9 +131,11 @@ public class SlackReporterFlow {
                             reporterBotMessagingPort.resolveUserRealName(userId),
                             text,
                             Instant.now(),
-                            Platform.SLACK,
-                                "referenced_message_id");
-                    incidentInboundPort.updateExistingIncident(updateCommand);
+                            Platform.SLACK);
+                    boolean updated = incidentInboundPort.updateExistingIncident(updateCommand);
+                    if (!updated) {
+                      broadcaster.warnUserOfUnlinkedIncident(updateCommand.reporterId());
+                    }
                   } catch (Exception e) {
                     // pass
                   } finally {

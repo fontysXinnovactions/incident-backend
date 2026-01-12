@@ -33,6 +33,9 @@ public class IncidentEntity {
   @Enumerated(EnumType.STRING)
   private Status status;
 
+  @Column(name = "assignee")
+  private String assignee;
+
   @Column(name = "created_at")
   private Instant createdAt = Instant.now();
 

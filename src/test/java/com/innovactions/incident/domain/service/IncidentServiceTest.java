@@ -40,7 +40,7 @@ class IncidentServiceTest {
               .build();
 
       // When
-      Incident result = service.createIncident(cmd, Severity.MAJOR);
+      Incident result = service.createIncident(cmd, Severity.MAJOR, "Database outage");
 
       // Then
       assertThat(result).isNotNull();
@@ -48,14 +48,15 @@ class IncidentServiceTest {
       assertThat(result.getReporterName()).isEqualTo("Alice");
       assertThat(result.getDetails()).isEqualTo("Database outage");
       assertThat(result.getSeverity()).isEqualTo(Severity.MAJOR);
-      assertThat(result.getAssignee()).isEqualTo("Bob");
+      // Default assignee is now 'Pending' until explicitly assigned
+      assertThat(result.getAssignee()).isEqualTo("Pending");
       assertThat(result.getId()).isNotNull(); // UUID auto-generated
     }
 
     @Test
     @DisplayName("Should throw when given null command")
     void shouldThrowWhenCommandNull() {
-      assertThatThrownBy(() -> service.createIncident(null, Severity.MINOR))
+      assertThatThrownBy(() -> service.createIncident(null, Severity.MINOR, "Database outage"))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -73,7 +74,7 @@ class IncidentServiceTest {
               .build();
 
       // When, Then
-      assertThatThrownBy(() -> service.createIncident(cmd, null))
+      assertThatThrownBy(() -> service.createIncident(cmd, null, "Something broke"))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -91,7 +92,7 @@ class IncidentServiceTest {
               .build();
 
       // When
-      Incident result = service.createIncident(cmd, Severity.MINOR);
+      Incident result = service.createIncident(cmd, Severity.MINOR, " ");
 
       // Then
       assertThat(result).isNotNull();
@@ -132,7 +133,8 @@ class IncidentServiceTest {
       assertThat(updated.getReporterId()).isEqualTo("rep-123");
       assertThat(updated.getReporterName()).isEqualTo("Alice");
       assertThat(updated.getSeverity()).isEqualTo(Severity.MINOR);
-      assertThat(updated.getAssignee()).isEqualTo("Bob");
+      // Default assignee is now 'Pending' until explicitly assigned
+      assertThat(updated.getAssignee()).isEqualTo("Pending");
       assertThat(updated.getDetails()).isEqualTo("Updated details");
     }
 

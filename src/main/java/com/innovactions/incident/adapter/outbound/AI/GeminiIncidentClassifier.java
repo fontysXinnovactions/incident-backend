@@ -1,10 +1,12 @@
 package com.innovactions.incident.adapter.outbound.AI;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
+import com.innovactions.incident.domain.model.IncidentClassification;
 import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GeminiIncidentClassifier implements SeverityClassifierPort {
 
+  private static final ObjectMapper MAPPER = new ObjectMapper();
   private final Client client;
 
   public GeminiIncidentClassifier(String apiKey) {
@@ -19,23 +22,28 @@ public class GeminiIncidentClassifier implements SeverityClassifierPort {
   }
 
   @Override
-  public Severity classify(String message) {
+  public IncidentClassification classify(String message) {
     String prompt =
         """
-                 You are an incident triage assistant.
-                 Classify ONLY the severity for the user's report.
-                \s
-                 Options (return EXACTLY one token):
-                 - URGENT: immediate attention, show-stopper, downtime, security breach, production outage.
-                 - MAJOR: broken functionality but workarounds exist; handle within this week.
-                 - MINOR: small bug/annoyance; can be deferred.
-                \s
-                 Return just one of: URGENT, MAJOR, MINOR.
-                \s
-                 Report:
-                 ---
-                 %s
-                 ---
+                You are an incident triage assistant.
+
+                Analyze the incident report and respond ONLY in valid JSON
+                using the following schema:
+
+                {
+                  "severity": "URGENT | MAJOR | MINOR",
+                  "summary": "One short sentence summary (max 20 words)"
+                }
+
+                Severity rules:
+                - URGENT: immediate attention, downtime, security breach, production outage
+                - MAJOR: broken functionality with workarounds
+                - MINOR: small bug or annoyance
+
+                Report:
+                ---
+                %s
+                ---
                 """
             .formatted(message == null ? "" : message);
 
@@ -43,17 +51,21 @@ public class GeminiIncidentClassifier implements SeverityClassifierPort {
       GenerateContentResponse response =
           client.models.generateContent("gemini-2.5-flash", prompt, null);
 
-      log.info("Gemini AI classified incident message '{}' as '{}'", message, response);
+      String text = response.text();
+      log.info("Gemini response: {}", text);
 
-      try {
-        return Severity.valueOf(Objects.requireNonNull(response.text()).trim().toUpperCase());
-      } catch (NullPointerException | IllegalArgumentException e) {
-        log.warn("Could not map response '{}', falling back to MINOR", response);
-        return Severity.MINOR;
-      }
+      JsonNode root = MAPPER.readTree(text);
+
+      Severity severity = Severity.valueOf(root.get("severity").asText().trim().toUpperCase());
+
+      String summary = root.get("summary").asText().trim();
+
+      return new IncidentClassification(severity, summary);
+
     } catch (Exception e) {
       log.error("Gemini classify failed ({}). Falling back to MINOR.", e.getMessage(), e);
-      return Severity.MINOR;
+      return new IncidentClassification(
+          Severity.MINOR, "Unable to summarize incident automatically");
     }
   }
 }
