@@ -1,6 +1,6 @@
 package com.innovactions.incident.adapter.inbound.whatsapp.mapper;
 
-import com.innovactions.incident.adapter.inbound.whatsapp.WhatsAppPayload;
+import com.innovactions.incident.adapter.inbound.whatsapp.model.WhatsAppPayload;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.domain.model.Platform;
 import java.time.Instant;

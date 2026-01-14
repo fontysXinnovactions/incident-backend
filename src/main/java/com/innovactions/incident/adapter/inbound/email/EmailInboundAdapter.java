@@ -42,7 +42,7 @@ public class EmailInboundAdapter {
 
         CreateIncidentCommand command = EmailIncidentCommandMapper.map(email);
 
-        incidentInboundPort.reportIncident(command);
+        incidentInboundPort.reportIncidentIfValid(command);
 
       } catch (Exception e) {
         log.error("Error while processing email notification", e);

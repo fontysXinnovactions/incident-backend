@@ -43,12 +43,6 @@ public class IncidentService {
     return updated;
   }
 
-  // Question by Bob: What is this for?
-  public Incident updateExistingIncident(CreateIncidentCommand updateCommand) {
-    // TODO: Implement logic to find and update the existing incident
-    return null;
-  }
-
   private String assign(String message) {
     return "Pending";
   }

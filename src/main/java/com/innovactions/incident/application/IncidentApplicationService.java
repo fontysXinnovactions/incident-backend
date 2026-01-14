@@ -9,6 +9,7 @@ import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
+import com.innovactions.incident.port.outbound.IncidentDetectorPort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ public class IncidentApplicationService implements IncidentInboundPort {
   private final SeverityClassifierPort severityClassifier;
   private final IncidentClosurePort incidentClosurePort;
   private final ConversationContextService conversationContextService;
+  private final IncidentDetectorPort incidentDetectorPort;
 
   /**
    * Handles a new incident report from the user.
@@ -46,6 +48,22 @@ public class IncidentApplicationService implements IncidentInboundPort {
             command, classification.severity(), classification.summary());
     String channelId = broadcaster.initSlackDeveloperWorkspace(incident, command.platform());
     conversationContextService.saveNewIncident(command, channelId, classification.severity());
+  }
+
+    /**
+     * Handle incident that first need to be checked on validity, whether it is an incident at all
+     *
+     * @param command The incoming command to be checked.
+     */
+  @Override
+  public void reportIncidentIfValid(CreateIncidentCommand command) {
+      boolean valid = incidentDetectorPort.isValidIncident(command.message());
+
+      if (valid) {
+          reportIncident(command);
+      } else {
+          log.debug("Incident {} is not a valid incident", command.message());
+      }
   }
 
   @Override

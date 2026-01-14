@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.inbound.whatsapp;
+package com.innovactions.incident.adapter.inbound.whatsapp.model;
 
 import java.util.List;
 import lombok.Data;

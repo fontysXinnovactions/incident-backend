@@ -1,4 +1,4 @@
-package com.innovactions.incident.domain.event;
+package com.innovactions.incident.domain.model;
 
 /**
  * Domain event published when an incident has been closed.

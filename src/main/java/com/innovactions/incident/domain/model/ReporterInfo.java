@@ -1,4 +1,4 @@
-package com.innovactions.incident.port.outbound;
+package com.innovactions.incident.domain.model;
 
 /**
  * Represents reporter information extracted from a channel topic.

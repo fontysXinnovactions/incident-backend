@@ -1,12 +1,12 @@
 package com.innovactions.incident.adapter.inbound.slack;
 
-import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
+import com.innovactions.incident.adapter.outbound.Slack.util.IncidentActionBlocks;
 import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentPersistencePort;
-import com.innovactions.incident.port.outbound.ReporterInfo;
+import com.innovactions.incident.domain.model.ReporterInfo;
 import com.slack.api.bolt.App;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,8 @@
-package com.innovactions.incident.adapter.outbound;
+package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
-import com.innovactions.incident.port.outbound.ReporterInfo;
+import com.innovactions.incident.domain.model.ReporterInfo;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.conversations.*;
