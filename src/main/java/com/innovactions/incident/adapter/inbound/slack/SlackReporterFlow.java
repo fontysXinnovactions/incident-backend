@@ -112,7 +112,7 @@ public class SlackReporterFlow {
                     String reporterName = reporterBotMessagingPort.resolveUserRealName(userId);
                     CreateIncidentCommand command =
                         new CreateIncidentCommand(
-                            userId, reporterName, text, Instant.now(), Platform.SLACK);
+                            userId, reporterName, text, Instant.now(), Platform.SLACK, ""); //Fixme: added temporary me ssage Id for quoting
                     incidentInboundPort.reportIncident(command);
                   } catch (Exception e) {
                     // pass
@@ -131,7 +131,7 @@ public class SlackReporterFlow {
                             reporterBotMessagingPort.resolveUserRealName(userId),
                             text,
                             Instant.now(),
-                            Platform.SLACK);
+                            Platform.SLACK, ""); //Fixme: added temporary me ssage Id for quoting
                     boolean updated = incidentInboundPort.updateExistingIncident(updateCommand);
                     if (!updated) {
                       broadcaster.warnUserOfUnlinkedIncident(updateCommand.reporterId());
