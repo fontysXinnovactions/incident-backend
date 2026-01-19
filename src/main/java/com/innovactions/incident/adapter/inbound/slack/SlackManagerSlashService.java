@@ -154,7 +154,7 @@ public class SlackManagerSlashService {
           incident.getAssignee() == null || incident.getAssignee().isBlank()
               ? "Pending"
               : incident.getAssignee();
-      String assigneeDisplay = ("Pending".equals(assignee)) ? "Pending" : "<" + assignee + ">";
+      String assigneeDisplay = ("Pending".equals(assignee)) ? "Pending" : "<@" + assignee + ">";
 
       sb.append(String.format("• *ID:* `%s`\n", incident.getId()));
       sb.append(String.format("  *Reporter:* %s\n", reporterDisplay));
