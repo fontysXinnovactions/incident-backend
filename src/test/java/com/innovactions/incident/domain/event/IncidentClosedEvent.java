@@ -2,6 +2,7 @@ package com.innovactions.incident.domain.event;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.innovactions.incident.domain.model.IncidentClosedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -3,7 +3,6 @@ package com.innovactions.incident.adapter.outbound.AI;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import com.innovactions.incident.port.outbound.IncidentDetectorPort;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,11 +13,9 @@ public class GeminiIncidentDetector implements IncidentDetectorPort {
 
   private final Client client;
 
-    public GeminiIncidentDetector(@Value("${gemini.api.key}") String apiKey) {
-        this.client = Client.builder()
-                .apiKey(apiKey)
-                .build();
-    }
+  public GeminiIncidentDetector(@Value("${gemini.api.key}") String apiKey) {
+    this.client = Client.builder().apiKey(apiKey).build();
+  }
 
   /**
    * Determines if a message describes an incident.
@@ -26,7 +23,7 @@ public class GeminiIncidentDetector implements IncidentDetectorPort {
    * @param message The text message to evaluate.
    * @return true if it's an incident, false otherwise.
    */
-  public boolean isIncident(String message) {
+  public boolean isValidIncident(String message) {
     String prompt =
         """
                 You are an incident triage assistant.

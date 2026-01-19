@@ -12,6 +12,7 @@ import com.innovactions.incident.domain.model.Severity;
 import com.innovactions.incident.domain.service.IncidentService;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
+import com.innovactions.incident.port.outbound.IncidentDetectorPort;
 import com.innovactions.incident.port.outbound.SeverityClassifierPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,7 @@ class IncidentApplicationServiceTest {
   private IncidentClosurePort closurePort;
   private ConversationContextService contextService;
   private IncidentApplicationService appService;
+  private IncidentDetectorPort detectorPort;
 
   @BeforeEach
   void setUp() {
@@ -35,10 +37,11 @@ class IncidentApplicationServiceTest {
     classifier = mock(SeverityClassifierPort.class);
     closurePort = mock(IncidentClosurePort.class);
     contextService = mock(ConversationContextService.class);
+    detectorPort = mock(IncidentDetectorPort.class);
 
     appService =
         new IncidentApplicationService(
-            incidentService, broadcaster, classifier, closurePort, contextService);
+            incidentService, broadcaster, classifier, closurePort, contextService, detectorPort);
   }
 
   @Nested

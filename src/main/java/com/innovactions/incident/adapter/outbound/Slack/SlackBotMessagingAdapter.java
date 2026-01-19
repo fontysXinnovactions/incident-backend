@@ -1,4 +1,4 @@
-package com.innovactions.incident.adapter.outbound;
+package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
