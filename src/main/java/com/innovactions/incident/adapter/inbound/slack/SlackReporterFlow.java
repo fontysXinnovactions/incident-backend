@@ -128,7 +128,7 @@ public class SlackReporterFlow {
                             userId, reporterName, text, Instant.now(), Platform.SLACK);
                     incidentInboundPort.reportIncident(command);
                   } catch (Exception e) {
-                    // pass
+                    log.error("Error reporting incident: {}", e.getMessage(), e);
                   } finally {
                     pendingReportState.clearPending(userId);
                   }
@@ -150,7 +150,7 @@ public class SlackReporterFlow {
                       broadcaster.warnUserOfUnlinkedIncident(updateCommand.reporterId());
                     }
                   } catch (Exception e) {
-                    // pass
+                    log.error("Error updating incident: {}", e.getMessage(), e);
                   } finally {
                     pendingReportState.clearUpdating(userId);
                   }
