@@ -70,12 +70,12 @@ public class WhatsAppWebhookController {
     try {
       log.debug("Incoming WhatsApp webhook received with {} entries", payload.getEntry().size());
 
-        CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
-        incidentInboundPort.reportIncidentIfValid(command);
+      CreateIncidentCommand command = WhatsAppIncidentCommandMapper.map(payload);
+      incidentInboundPort.reportIncidentIfValid(command);
 
-        log.info(
-            "Successfully processed WhatsApp message from incident reporter {}",
-            command.reporterId());
+      log.info(
+          "Successfully processed WhatsApp message from incident reporter {}",
+          command.reporterId());
 
       return ResponseEntity.ok().build();
 

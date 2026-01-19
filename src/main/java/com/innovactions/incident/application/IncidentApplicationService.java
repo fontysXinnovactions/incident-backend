@@ -50,20 +50,20 @@ public class IncidentApplicationService implements IncidentInboundPort {
     conversationContextService.saveNewIncident(command, channelId, classification.severity());
   }
 
-    /**
-     * Handle incident that first need to be checked on validity, whether it is an incident at all
-     *
-     * @param command The incoming command to be checked.
-     */
+  /**
+   * Handle incident that first need to be checked on validity, whether it is an incident at all
+   *
+   * @param command The incoming command to be checked.
+   */
   @Override
   public void reportIncidentIfValid(CreateIncidentCommand command) {
-      boolean valid = incidentDetectorPort.isValidIncident(command.message());
+    boolean valid = incidentDetectorPort.isValidIncident(command.message());
 
-      if (valid) {
-          reportIncident(command);
-      } else {
-          log.debug("Incident {} is not a valid incident", command.message());
-      }
+    if (valid) {
+      reportIncident(command);
+    } else {
+      log.debug("Incident {} is not a valid incident", command.message());
+    }
   }
 
   @Override

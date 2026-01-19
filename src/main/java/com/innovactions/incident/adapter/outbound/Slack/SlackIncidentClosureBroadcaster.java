@@ -1,12 +1,12 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
 import com.innovactions.incident.domain.model.IncidentClosedEvent;
+import com.innovactions.incident.domain.model.ReporterInfo;
 import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.IncidentClosurePort;
 import com.innovactions.incident.port.outbound.IncidentPersistencePort;
-import com.innovactions.incident.domain.model.ReporterInfo;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.conversations.ConversationsKickResponse;

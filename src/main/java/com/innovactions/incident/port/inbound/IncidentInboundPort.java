@@ -11,5 +11,4 @@ public interface IncidentInboundPort {
   boolean updateExistingIncident(CreateIncidentCommand command);
 
   void closeIncident(CloseIncidentCommand incidentCommand);
-
 }

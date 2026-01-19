@@ -1,5 +1,7 @@
 package com.innovactions.incident.application;
 
+import static org.mockito.Mockito.*;
+
 import com.innovactions.incident.application.command.CloseIncidentCommand;
 import com.innovactions.incident.application.command.CreateIncidentCommand;
 import com.innovactions.incident.application.command.UpdateIncidentCommand;
@@ -17,8 +19,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-
-import static org.mockito.Mockito.*;
 
 class IncidentApplicationServiceTest {
 
