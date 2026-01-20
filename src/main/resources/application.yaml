@@ -35,7 +35,7 @@ spring:
 
   graph:
     client:
-      id: ${graph-client-id2}
-      secret: ${graph-client-secret}
-    tenant:
-      id: ${graph-tenant-id}
+      id: ${email-graph-client-id}
+#      secret: ${graph-client-secret}
+#    tenant:
+#      id: ${graph-tenant-id}
