@@ -24,6 +24,7 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 @Configuration
 public class SlackConfig {
@@ -113,12 +114,22 @@ public class SlackConfig {
   ───────────────────────────────────── */
   @Bean
   public ServletRegistrationBean<Servlet> reporterServlet(App reporterSlackApp) {
-    return new ServletRegistrationBean<>(new SlackAppServlet(reporterSlackApp), "/slack/reporter");
+    ServletRegistrationBean<Servlet> registration =
+        new ServletRegistrationBean<>(new SlackAppServlet(reporterSlackApp), "/slack/reporter");
+    // Ensure the Bolt servlet is initialized early and wins deterministically
+    registration.setLoadOnStartup(1);
+    registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    return registration;
   }
 
   @Bean
   public ServletRegistrationBean<Servlet> managerServlet(App managerSlackApp) {
-    return new ServletRegistrationBean<>(new SlackAppServlet(managerSlackApp), "/slack/manager");
+    ServletRegistrationBean<Servlet> registration =
+        new ServletRegistrationBean<>(new SlackAppServlet(managerSlackApp), "/slack/manager");
+    // Ensure the Bolt servlet is initialized early and wins deterministically
+    registration.setLoadOnStartup(1);
+    registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    return registration;
   }
 
   /* ─────────────────────────────────────

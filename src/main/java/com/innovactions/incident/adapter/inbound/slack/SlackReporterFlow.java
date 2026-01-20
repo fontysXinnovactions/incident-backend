@@ -12,6 +12,7 @@ import com.slack.api.model.event.MessageEvent;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>Used with the Reporter Bot in client context
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SlackReporterFlow {
@@ -29,6 +31,17 @@ public class SlackReporterFlow {
   private final IncidentBroadcasterPort broadcaster;
 
   public void register(App app) {
+    // Log what Bolt actually sees (helps diagnose parsing/signature issues)
+    app.use(
+        (req, ctx, chain) -> {
+          log.info("=== SLACK REPORTER REQUEST DEBUG ===");
+          log.info("Request type: {}", req.getRequestType());
+          log.info("Request headers: {}", req.getHeaders());
+          log.info("Request raw body: {}", req.getRequestBodyAsString());
+          log.info("=== END DEBUG ===");
+          return chain.next(req);
+        });
+
     // report_bug --> mark pending and prompt for details
     app.blockAction(
         "report_bug",
@@ -115,7 +128,7 @@ public class SlackReporterFlow {
                             userId, reporterName, text, Instant.now(), Platform.SLACK);
                     incidentInboundPort.reportIncident(command);
                   } catch (Exception e) {
-                    // pass
+                    log.error("Error reporting incident: {}", e.getMessage(), e);
                   } finally {
                     pendingReportState.clearPending(userId);
                   }
@@ -137,7 +150,7 @@ public class SlackReporterFlow {
                       broadcaster.warnUserOfUnlinkedIncident(updateCommand.reporterId());
                     }
                   } catch (Exception e) {
-                    // pass
+                    log.error("Error updating incident: {}", e.getMessage(), e);
                   } finally {
                     pendingReportState.clearUpdating(userId);
                   }

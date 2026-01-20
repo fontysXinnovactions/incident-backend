@@ -28,6 +28,17 @@ public class SlackManagerActions {
   private final IncidentPersistencePort incidentPersistencePort;
 
   public void register(App managerApp) {
+    // Log what Bolt actually sees (helps diagnose parsing/signature issues)
+    managerApp.use(
+        (req, ctx, chain) -> {
+          log.info("=== SLACK MANAGER REQUEST DEBUG ===");
+          log.info("Request type: {}", req.getRequestType());
+          log.info("Request headers: {}", req.getHeaders());
+          log.info("Request raw body: {}", req.getRequestBodyAsString());
+          log.info("=== END DEBUG ===");
+          return chain.next(req);
+        });
+
     managerApp.blockAction(
         "ack_incident",
         (req, ctx) -> {
