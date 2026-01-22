@@ -1,4 +1,3 @@
-
 ---
 
 # Incident App – Backend
@@ -12,7 +11,7 @@ The backend is responsible for handling incidents and exposing APIs for differen
 * **Company:** Innovactions
 * **Type:** School project
 * **Goal:** Build an incident management system that integrates with real communication tools.
-* **Phase:** V1, expand the Slack integration, integrate WhatsApp and thoroughly test the system.
+* **Phase:** Finished, Slack, Whatsapp, Email and AI integrations working.
 
 ## Tech Stack
 
@@ -25,21 +24,13 @@ The backend is responsible for handling incidents and exposing APIs for differen
 ## Integrations
 
 * **Slackbot**: Allow users to report and follow-up incidents directly from Slack.
-* **WhatsApp**: Future extension for incident notifications or reporting.
+* **WhatsApp**: Allow users to be able to send messages, picked up by the business account bot
 
 ### Prerequisites
 
 * Install **Java 21**
 * Install **Maven 3.8+**
 * Docker
-
-## Development Notes
-
-* MVP is implemented and functional
-* Slack integration with dynamic channels complete
-* Focus on WhatsApp integration
-* Implement CI/CD with dockerization
-* Test existing code and make sure new code is always tested before merging
 
 ## Contributors
 
@@ -52,6 +43,7 @@ The backend is responsible for handling incidents and exposing APIs for differen
 * Fontys mentors
   * Erik Schriek
   * Nicole Zuurbier-Munneke
+  * Bartosz Paszkowski
 * Innovactions stakeholders
   * Steven van 't Klooster
 
