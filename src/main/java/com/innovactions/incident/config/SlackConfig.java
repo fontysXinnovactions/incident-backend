@@ -4,12 +4,12 @@ import com.innovactions.incident.adapter.inbound.slack.SlackCloseIncident;
 import com.innovactions.incident.adapter.inbound.slack.SlackCreateIncident;
 import com.innovactions.incident.adapter.inbound.slack.SlackManagerActions;
 import com.innovactions.incident.adapter.inbound.slack.SlackReporterFlow;
+import com.innovactions.incident.adapter.outbound.Slack.SlackBotMessagingAdapter;
 import com.innovactions.incident.adapter.outbound.Slack.SlackBroadcaster;
+import com.innovactions.incident.adapter.outbound.Slack.SlackChannelAdministrationAdapter;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentClosureBroadcaster;
 import com.innovactions.incident.adapter.outbound.Slack.SlackIncidentReporterNotifierAdapter;
 import com.innovactions.incident.adapter.outbound.Slack.SlackUserInfoAdapter;
-import com.innovactions.incident.adapter.outbound.SlackBotMessagingAdapter;
-import com.innovactions.incident.adapter.outbound.SlackChannelAdministrationAdapter;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
 import com.innovactions.incident.domain.service.EncryptionService;
 import com.innovactions.incident.port.inbound.IncidentInboundPort;
@@ -24,6 +24,7 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 @Configuration
 public class SlackConfig {
@@ -113,12 +114,22 @@ public class SlackConfig {
   ───────────────────────────────────── */
   @Bean
   public ServletRegistrationBean<Servlet> reporterServlet(App reporterSlackApp) {
-    return new ServletRegistrationBean<>(new SlackAppServlet(reporterSlackApp), "/slack/reporter");
+    ServletRegistrationBean<Servlet> registration =
+        new ServletRegistrationBean<>(new SlackAppServlet(reporterSlackApp), "/slack/reporter");
+    // Ensure the Bolt servlet is initialized early and wins deterministically
+    registration.setLoadOnStartup(1);
+    registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    return registration;
   }
 
   @Bean
   public ServletRegistrationBean<Servlet> managerServlet(App managerSlackApp) {
-    return new ServletRegistrationBean<>(new SlackAppServlet(managerSlackApp), "/slack/manager");
+    ServletRegistrationBean<Servlet> registration =
+        new ServletRegistrationBean<>(new SlackAppServlet(managerSlackApp), "/slack/manager");
+    // Ensure the Bolt servlet is initialized early and wins deterministically
+    registration.setLoadOnStartup(1);
+    registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    return registration;
   }
 
   /* ─────────────────────────────────────

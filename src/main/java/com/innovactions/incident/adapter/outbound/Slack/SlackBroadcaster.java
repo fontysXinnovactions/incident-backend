@@ -1,6 +1,6 @@
 package com.innovactions.incident.adapter.outbound.Slack;
 
-import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
+import com.innovactions.incident.adapter.outbound.Slack.util.IncidentActionBlocks;
 import com.innovactions.incident.domain.model.Incident;
 import com.innovactions.incident.domain.model.Platform;
 import com.innovactions.incident.domain.service.ChannelNameGenerator;
@@ -27,8 +27,10 @@ public class SlackBroadcaster implements IncidentBroadcasterPort {
 
   @Override
   public String initSlackDeveloperWorkspace(Incident incident, Platform platform) {
-    // generate channel name based on severity and timestamp
-    String channelName = channelNameGenerator.generateChannelName(incident.getSeverity());
+    // generate channel name based on severity and reporter name
+    String channelName =
+        channelNameGenerator.generateChannelName(
+            incident.getSeverity(), incident.getReporterName());
 
     // create new channel in workspace B
     String channelId = channelAdministrationPort.createPublicChannel(channelName);

@@ -1,7 +1,7 @@
 package com.innovactions.incident.application.listener;
 
 import com.innovactions.incident.adapter.outbound.persistence.Entity.IncidentEntity;
-import com.innovactions.incident.domain.event.IncidentClosedEvent;
+import com.innovactions.incident.domain.model.IncidentClosedEvent;
 import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.outbound.IncidentPersistencePort;
 import jakarta.transaction.Transactional;

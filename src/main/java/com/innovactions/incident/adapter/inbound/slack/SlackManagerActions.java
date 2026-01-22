@@ -1,12 +1,12 @@
 package com.innovactions.incident.adapter.inbound.slack;
 
-import com.innovactions.incident.adapter.outbound.IncidentActionBlocks;
+import com.innovactions.incident.adapter.outbound.Slack.util.IncidentActionBlocks;
+import com.innovactions.incident.domain.model.ReporterInfo;
 import com.innovactions.incident.domain.model.Status;
 import com.innovactions.incident.port.outbound.BotMessagingPort;
 import com.innovactions.incident.port.outbound.ChannelAdministrationPort;
 import com.innovactions.incident.port.outbound.IncidentBroadcasterPort;
 import com.innovactions.incident.port.outbound.IncidentPersistencePort;
-import com.innovactions.incident.port.outbound.ReporterInfo;
 import com.slack.api.bolt.App;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +28,17 @@ public class SlackManagerActions {
   private final IncidentPersistencePort incidentPersistencePort;
 
   public void register(App managerApp) {
+    // Log what Bolt actually sees (helps diagnose parsing/signature issues)
+    managerApp.use(
+        (req, ctx, chain) -> {
+          log.info("=== SLACK MANAGER REQUEST DEBUG ===");
+          log.info("Request type: {}", req.getRequestType());
+          log.info("Request headers: {}", req.getHeaders());
+          log.info("Request raw body: {}", req.getRequestBodyAsString());
+          log.info("=== END DEBUG ===");
+          return chain.next(req);
+        });
+
     managerApp.blockAction(
         "ack_incident",
         (req, ctx) -> {

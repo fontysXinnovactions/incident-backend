@@ -23,7 +23,7 @@ public class GeminiIncidentDetector implements IncidentDetectorPort {
    * @param message The text message to evaluate.
    * @return true if it's an incident, false otherwise.
    */
-  public boolean isIncident(String message) {
+  public boolean isValidIncident(String message) {
     String prompt =
         """
                 You are an incident triage assistant.

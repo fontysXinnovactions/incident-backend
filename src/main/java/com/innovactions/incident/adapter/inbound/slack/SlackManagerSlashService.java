@@ -32,7 +32,7 @@ public class SlackManagerSlashService {
   private final EncryptionAdapter encryptionAdapter;
   private final UserInfoPort userInfoPort;
   private final IncidentInboundPort incidentInboundPort;
-  private final IncidentBroadcasterPort broadcaster;
+  private final IncidentBroadcasterPort broadcasterPort;
 
   public String closeIncident(SlashCommandRequest request) {
     String userId = request.getUserId();
@@ -61,8 +61,7 @@ public class SlackManagerSlashService {
 
   public String viewIncidents(SlashCommandRequest request) {
     // Authorize
-    boolean isAdmin = userInfoPort.userIsAdmin(request.getUserId());
-    log.debug("User {} is admin: {}", request.getUserId(), isAdmin);
+    boolean isAdmin = isAdmin(request.getUserId());
     if (!isAdmin) {
       return "❌ You are not authorized to launch this command.";
     }
@@ -74,8 +73,7 @@ public class SlackManagerSlashService {
 
   public String assignIncident(SlashCommandRequest request) {
     // Authorize
-    boolean isAdmin = userInfoPort.userIsAdmin(request.getUserId());
-    log.debug("User {} is admin: {}", request.getUserId(), isAdmin);
+    boolean isAdmin = isAdmin(request.getUserId());
     if (!isAdmin) {
       return "❌ You are not authorized to launch this command.";
     }
@@ -114,7 +112,7 @@ public class SlackManagerSlashService {
     String channelId = incident.getSlackChannelId();
 
     // notify developer of assignment by managerbot
-    broadcaster.notifyDeveloperOfAssignment(developerId, channelId);
+    broadcasterPort.notifyDeveloperOfAssignment(developerId, channelId);
 
     return String.format(
         "✅ Successfully assigned incident `%s` to <%s>\n" + "• *Status:* %s\n" + "• *Severity:* %s",
@@ -156,7 +154,7 @@ public class SlackManagerSlashService {
           incident.getAssignee() == null || incident.getAssignee().isBlank()
               ? "Pending"
               : incident.getAssignee();
-      String assigneeDisplay = ("Pending".equals(assignee)) ? "Pending" : "<" + assignee + ">";
+      String assigneeDisplay = ("Pending".equals(assignee)) ? "Pending" : "<@" + assignee + ">";
 
       sb.append(String.format("• *ID:* `%s`\n", incident.getId()));
       sb.append(String.format("  *Reporter:* %s\n", reporterDisplay));
@@ -178,5 +176,11 @@ public class SlackManagerSlashService {
     }
 
     return sb.toString();
+  }
+
+  private boolean isAdmin(String userId) {
+    boolean isAdmin = userInfoPort.userIsAdmin(userId);
+    log.debug("User {} is admin: {}", userId, isAdmin);
+    return isAdmin;
   }
 }

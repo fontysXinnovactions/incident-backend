@@ -23,10 +23,10 @@ class ChannelNameGeneratorTest {
       ChannelNameGenerator generator = new ChannelNameGenerator();
 
       // When
-      String channel = generator.generateChannelName(Severity.MAJOR);
+      String channel = generator.generateChannelName(Severity.MAJOR, "test");
 
       // Then
-      assertEquals("major_03-11-2025_07-05", channel);
+      assertEquals("major_test_03-11-2025_07-05-00", channel);
     }
   }
 
@@ -40,10 +40,10 @@ class ChannelNameGeneratorTest {
       mocked.when(() -> LocalDateTime.now()).thenReturn(fixed);
 
       ChannelNameGenerator gen = new ChannelNameGenerator();
-      String result = gen.generateChannelName(Severity.MINOR);
+      String result = gen.generateChannelName(Severity.MINOR, "test");
 
       // Then
-      assertEquals("minor_02-01-2025_03-04", result);
+      assertEquals("minor_test_02-01-2025_03-04-00", result);
     }
   }
 
@@ -53,7 +53,7 @@ class ChannelNameGeneratorTest {
     var gen = new ChannelNameGenerator();
 
     // When, Then
-    assertThatThrownBy(() -> gen.generateChannelName(null))
+    assertThatThrownBy(() -> gen.generateChannelName(null, "test"))
         .isInstanceOf(NullPointerException.class) // or IllegalArgumentException if you add a guard
         .hasMessageContaining("severity"); // add a message in your guard for clarity
   }

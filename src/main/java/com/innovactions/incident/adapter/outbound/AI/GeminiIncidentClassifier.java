@@ -27,7 +27,7 @@ public class GeminiIncidentClassifier implements SeverityClassifierPort {
         """
                 You are an incident triage assistant.
 
-                Analyze the incident report and respond ONLY in valid JSON
+                Analyze the incident report and respond ONLY in valid JSON without Markdown formatting.
                 using the following schema:
 
                 {
