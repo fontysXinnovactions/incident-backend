@@ -15,12 +15,16 @@ public class ChannelNameGenerator {
     String day = String.format("%02d", now.getDayOfMonth());
     String month = String.format("%02d", now.getMonthValue());
     String year = String.valueOf(now.getYear());
+    String hour = String.format("%02d", now.getHour());
+    String minute = String.format("%02d", now.getMinute());
+    String second = String.format("%02d", now.getSecond());
 
     String sanitizedName = sanitizeForChannelName(reporterName);
     log.info("Sanitized name: {}", sanitizedName);
 
     return String.format(
-        "%s_%s_%s-%s-%s", severity.name().toLowerCase(), sanitizedName, day, month, year);
+        "%s_%s_%s-%s-%s_%s-%s-%s",
+        severity.name().toLowerCase(), sanitizedName, day, month, year, hour, minute, second);
   }
 
   private String sanitizeForChannelName(String name) {

@@ -26,7 +26,7 @@ class ChannelNameGeneratorTest {
       String channel = generator.generateChannelName(Severity.MAJOR, "test");
 
       // Then
-      assertEquals("major_test_03-11-2025", channel);
+      assertEquals("major_test_03-11-2025_07-05-00", channel);
     }
   }
 
@@ -43,7 +43,7 @@ class ChannelNameGeneratorTest {
       String result = gen.generateChannelName(Severity.MINOR, "test");
 
       // Then
-      assertEquals("minor_test_02-01-2025", result);
+      assertEquals("minor_test_02-01-2025_03-04-00", result);
     }
   }
 
