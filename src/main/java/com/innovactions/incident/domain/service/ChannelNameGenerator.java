@@ -23,7 +23,8 @@ public class ChannelNameGenerator {
     log.info("Sanitized name: {}", sanitizedName);
 
     return String.format(
-        "%s_%s_%s-%s-%s_%s-%s-%s", severity.name().toLowerCase(), sanitizedName, day, month, year, hour, minute, second);
+        "%s_%s_%s-%s-%s_%s-%s-%s",
+        severity.name().toLowerCase(), sanitizedName, day, month, year, hour, minute, second);
   }
 
   private String sanitizeForChannelName(String name) {
