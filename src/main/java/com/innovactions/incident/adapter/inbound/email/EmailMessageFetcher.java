@@ -2,13 +2,15 @@ package com.innovactions.incident.adapter.inbound.email;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.innovactions.incident.adapter.inbound.email.model.EmailMessage;
-import com.microsoft.aad.msal4j.*;
+import com.microsoft.aad.msal4j.DeviceCode;
+import com.microsoft.aad.msal4j.DeviceCodeFlowParameters;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.PublicClientApplication;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,52 +23,32 @@ public class EmailMessageFetcher {
   @Value("${graph.client.id}")
   private String clientId;
 
-  @Value("${graph.client.secret}")
-  private String clientSecret;
-
-  @Value("${graph.tenant.id}")
-  private String tenantId;
-
+  private static final String AUTHORITY = "https://login.microsoftonline.com/common";
+  private static final Set<String> SCOPE = Set.of("https://graph.microsoft.com/Mail.Read");
   private static final String GRAPH_BASE = "https://graph.microsoft.com/v1.0";
-  private static final Set<String> SCOPE = Set.of("https://graph.microsoft.com/.default");
 
   private String accessToken;
-  private Instant expiresAt;
 
   @PostConstruct
   public void init() {
-    refreshToken();
+    this.accessToken = acquireAccessToken();
   }
 
-  private synchronized String getAccessToken() {
-    if (accessToken == null || expiresAt == null || Instant.now().isAfter(expiresAt)) {
-      log.info("🔄 Microsoft Graph token expired or missing — refreshing");
-      refreshToken();
-    }
-    return accessToken;
-  }
-
-  private void refreshToken() {
+  private String acquireAccessToken() {
     try {
-      String authority = "https://login.microsoftonline.com/" + tenantId;
+      PublicClientApplication app =
+          PublicClientApplication.builder(clientId).authority(AUTHORITY).build();
 
-      ConfidentialClientApplication app =
-          ConfidentialClientApplication.builder(
-                  clientId, ClientCredentialFactory.createFromSecret(clientSecret))
-              .authority(authority)
+      DeviceCodeFlowParameters parameters =
+          DeviceCodeFlowParameters.builder(
+                  SCOPE, (DeviceCode deviceCode) -> log.info(deviceCode.message()))
               .build();
 
-      ClientCredentialParameters parameters = ClientCredentialParameters.builder(SCOPE).build();
-
       IAuthenticationResult result = app.acquireToken(parameters).join();
-
-      this.accessToken = result.accessToken();
-      this.expiresAt = result.expiresOnDate().toInstant().minusSeconds(60);
-
-      log.info("✅ New Microsoft Graph access token acquired (expires at {})", expiresAt);
-
+      log.info("Access token obtained from Microsoft Graph");
+      return result.accessToken();
     } catch (Exception e) {
-      throw new RuntimeException("Error while acquiring Microsoft Graph access token", e);
+      throw new RuntimeException("Error while receiving Microsoft Graph token", e);
     }
   }
 
@@ -77,10 +59,10 @@ public class EmailMessageFetcher {
               .uri(
                   URI.create(
                       GRAPH_BASE
-                          + "/users/automatedincident@outlook.com/messages/"
+                          + "/me/messages/"
                           + messageId
                           + "?$select=subject,from,receivedDateTime,bodyPreview"))
-              .header("Authorization", "Bearer " + getAccessToken())
+              .header("Authorization", "Bearer " + accessToken)
               .header("Accept", "application/json")
               .GET()
               .build();
@@ -88,22 +70,24 @@ public class EmailMessageFetcher {
       HttpResponse<String> response =
           HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
+      log.error("Graph status: {}", response.statusCode());
+      log.error("Graph response: {}", response.body());
+
       if (response.statusCode() == 200) {
-        return new ObjectMapper().readValue(response.body(), EmailMessage.class);
+        EmailMessage message = new ObjectMapper().readValue(response.body(), EmailMessage.class);
+        log.info(
+            "Parsed message: subject={}, from={}",
+            message.getSubject(),
+            message.getFrom().getEmailAddress().getAddress());
+        return message;
+      } else {
+        log.error(
+            "Graph call failed with status {} and body {}", response.statusCode(), response.body());
+        throw new RuntimeException("Graph answered with status " + response.statusCode());
       }
-
-      // Token kan tussentijds ongeldig zijn geworden
-      if (response.statusCode() == 401) {
-        log.warn("⚠️ Graph returned 401 — retrying with fresh token");
-        refreshToken();
-        return fetchMessageDetails(messageId);
-      }
-
-      throw new RuntimeException(
-          "Graph returned " + response.statusCode() + ": " + response.body());
 
     } catch (Exception e) {
-      throw new RuntimeException("Error while fetching email details", e);
+      throw new RuntimeException("Error while receiving email details", e);
     }
   }
 }
